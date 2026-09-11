@@ -1,0 +1,286 @@
+services:
+  compose1-dashboard:
+    image: "mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest"
+    ports:
+      - "18888"
+    expose:
+      - "18889"
+      - "18890"
+    networks:
+      - "aspire"
+    restart: "always"
+  pg:
+    image: "docker.io/library/postgres:18.3"
+    command:
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "log_min_duration_statement=100"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "${PG_PASSWORD}"
+    expose:
+      - "5432"
+    networks:
+      - "aspire"
+  kafka:
+    image: "docker.io/confluentinc/confluent-local:8.2.0"
+    environment:
+      KAFKA_LISTENERS: "PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:9093"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092,PLAINTEXT_INTERNAL://kafka:9093"
+    expose:
+      - "9092"
+      - "9093"
+    networks:
+      - "aspire"
+  schema-registry:
+    image: "confluentinc/cp-schema-registry:7.6.1"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka:9093"
+      SCHEMA_REGISTRY_HOST_NAME: "schema-registry"
+      SCHEMA_REGISTRY_LISTENERS: "http://schema-registry:8081"
+      SCHEMA_REGISTRY_DEBUG: "false"
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC_CONFIGS: "cleanup.policy=compact"
+    expose:
+      - "8081"
+    networks:
+      - "aspire"
+  kafka-connect:
+    image: "${KAFKA_CONNECT_IMAGE}"
+    command:
+      - "bash"
+      - "-c"
+      - "export CLASSPATH=$CLASSPATH:/usr/share/java/otel-lib/*; if [ -n \"$ASPIRE_CERT_PATH\" ] && [ -f \"$ASPIRE_CERT_PATH\" ]; then keytool -importcert -noprompt -trustcacerts -file \"$ASPIRE_CERT_PATH\" -keystore /tmp/aspire-truststore.p12 -storetype PKCS12 -storepass changeit -alias aspire-dev-cert; fi; /etc/confluent/docker/run"
+    environment:
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.converters.ByteArrayConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.converters.ByteArrayConverter"
+      CONNECT_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka:9093"
+      CONNECT_GC_LOG_ENABLED: "false"
+      CONNECT_HEAP_OPTS: "-Xms256M -Xmx256M"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_REST_PORT: "8083"
+      CONNECT_GROUP_ID: "docker-connect-group"
+      CONNECT_CONFIG_STORAGE_TOPIC: "docker-connect-configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "docker-connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "docker-connect-status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_CONFIG_STORAGE_PARTITIONS: "1"
+      CONNECT_OFFSET_STORAGE_PARTITIONS: "1"
+      CONNECT_STATUS_STORAGE_PARTITIONS: "1"
+      CONNECT_LOG_LEVEL: "info"
+      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.debezium.tracing.DebeziumTracingProducerInterceptor"
+      ENABLE_OTEL: "true"
+      KAFKA_OPTS: "-javaagent:/otel/opentelemetry-javaagent.jar -Dotel.instrumentation.kafka.enabled=false"
+      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0,deployment.environment=production"
+      OTEL_PROPAGATORS: "tracecontext"
+      OTEL_INSTRUMENTATION_COMMON_DEFAULT_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose1-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "kafka-connect"
+    expose:
+      - "8083"
+    networks:
+      - "aspire"
+  kafka-console:
+    image: "docker.redpanda.com/redpandadata/console:v3.0.1"
+    command:
+      - "-c"
+      - "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    entrypoint:
+      - "/bin/sh"
+    environment:
+      CONFIG_FILEPATH: "/tmp/config.yml"
+      CONSOLE_CONFIG_FILE: "kafka:\n  brokers: [kafka:9093]\nschemaRegistry:\n  enabled: true\n  urls: [http://schema-registry:8081]\nkafkaConnect:\n  enabled: true\n  clusters:\n    - name: kafka-connect\n      url: http://kafka-connect:8083\n"
+    expose:
+      - "8080"
+    networks:
+      - "aspire"
+  mailhog:
+    image: "mailhog/mailhog:v1.0.1"
+    expose:
+      - "1025"
+      - "8025"
+    networks:
+      - "aspire"
+  redis:
+    image: "docker.io/library/redis:8.6"
+    command:
+      - "-c"
+      - "redis-server --requirepass $$REDIS_PASSWORD"
+    entrypoint:
+      - "/bin/sh"
+    environment:
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    expose:
+      - "6379"
+    networks:
+      - "aspire"
+  swagger-ui:
+    image: "swaggerapi/swagger-ui:v5.31.0"
+    environment:
+      URL: ""
+      URLS: "[{ url: \"http://auth:${AUTH_PORT}/openapi/v1.json\", name: \"Auth\" },{ url: \"http://bookmarks-api:${BOOKMARKS_API_PORT}/openapi/v1.json\", name: \"BookmarksApi\" },]"
+    expose:
+      - "8080"
+    networks:
+      - "aspire"
+  otel-collector:
+    image: "otel/opentelemetry-collector-contrib:0.142.0"
+    command:
+      - "--config"
+      - "/etc/otelcol-contrib/config.yaml"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose1-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "otel-collector"
+    expose:
+      - "4317"
+      - "4318"
+      - "8006"
+    networks:
+      - "aspire"
+    configs:
+      - source: "otel-collector__etc_otelcol-contrib_config.yaml"
+        target: "/etc/otelcol-contrib/config.yaml"
+        mode: 0644
+  auth:
+    image: "${AUTH_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${AUTH_PORT}"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      ConnectionStrings__authdb: "Host=pg;Port=5432;Username=postgres;Password=${PG_PASSWORD};Database=authdb"
+      AUTHDB_HOST: "pg"
+      AUTHDB_PORT: "5432"
+      AUTHDB_USERNAME: "postgres"
+      AUTHDB_PASSWORD: "${PG_PASSWORD}"
+      AUTHDB_URI: "postgresql://postgres:${PG_PASSWORD}@pg:5432/authdb"
+      AUTHDB_JDBCCONNECTIONSTRING: "jdbc:postgresql://pg:5432/authdb"
+      AUTHDB_DATABASENAME: "authdb"
+      AuthMessageSenderOptions__SmtpHost: "mailhog"
+      AuthMessageSenderOptions__SmtpPort: "1025"
+      SWAGGERUI__URL: "http://swagger-ui:8080"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose1-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "auth"
+    expose:
+      - "${AUTH_PORT}"
+    networks:
+      - "aspire"
+  bookmarks-api:
+    image: "${BOOKMARKS_API_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${BOOKMARKS_API_PORT}"
+      ConnectionStrings__BookmarksRw: "Host=pg;Port=5432;Username=postgres;Password=${PG_PASSWORD};Database=bookmarksdb"
+      BOOKMARKSRW_HOST: "pg"
+      BOOKMARKSRW_PORT: "5432"
+      BOOKMARKSRW_USERNAME: "postgres"
+      BOOKMARKSRW_PASSWORD: "${PG_PASSWORD}"
+      BOOKMARKSRW_URI: "postgresql://postgres:${PG_PASSWORD}@pg:5432/bookmarksdb"
+      BOOKMARKSRW_JDBCCONNECTIONSTRING: "jdbc:postgresql://pg:5432/bookmarksdb"
+      BOOKMARKSRW_DATABASENAME: "bookmarksdb"
+      ConnectionStrings__BookmarksRo: "Host=pg;Port=5432;Username=postgres;Password=${PG_PASSWORD};Database=bookmarksdb"
+      BOOKMARKSRO_HOST: "pg"
+      BOOKMARKSRO_PORT: "5432"
+      BOOKMARKSRO_USERNAME: "postgres"
+      BOOKMARKSRO_PASSWORD: "${PG_PASSWORD}"
+      BOOKMARKSRO_URI: "postgresql://postgres:${PG_PASSWORD}@pg:5432/bookmarksdb"
+      BOOKMARKSRO_JDBCCONNECTIONSTRING: "jdbc:postgresql://pg:5432/bookmarksdb"
+      BOOKMARKSRO_DATABASENAME: "bookmarksdb"
+      Jwt__Key: "${JWT_KEY}"
+      Bookmarks__SchemaRegistry__Url: "http://schema-registry:8081"
+      SWAGGERUI__URL: "http://swagger-ui:8080"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose1-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "bookmarks-api"
+    expose:
+      - "${BOOKMARKS_API_PORT}"
+    networks:
+      - "aspire"
+  tags-bookmarks-subscriber:
+    image: "${TAGS_BOOKMARKS_SUBSCRIBER_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${TAGS_BOOKMARKS_SUBSCRIBER_PORT}"
+      ConnectionStrings__kafka: "kafka:9092"
+      KAFKA_HOST: "kafka"
+      KAFKA_PORT: "9092"
+      ConnectionStrings__schema-registry: "http://schema-registry:8081"
+      BOOKMARKS_API_HTTP: "http://bookmarks-api:${BOOKMARKS_API_PORT}"
+      services__bookmarks-api__http__0: "http://bookmarks-api:${BOOKMARKS_API_PORT}"
+      BOOKMARKS_API_HTTPS: "https://bookmarks-api:${BOOKMARKS_API_PORT}"
+      SchemaRegistryUrl: "http://schema-registry:8081"
+      BookmarksApi__Url: "http://bookmarks-api:${BOOKMARKS_API_PORT}"
+      BookmarksApi__ApiKey: "${BOOKMARKS_API_KEY}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose1-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "tags-bookmarks-subscriber"
+    expose:
+      - "${TAGS_BOOKMARKS_SUBSCRIBER_PORT}"
+    depends_on:
+      kafka:
+        condition: "service_started"
+      schema-registry:
+        condition: "service_started"
+      bookmarks-api:
+        condition: "service_started"
+    networks:
+      - "aspire"
+  static-assets:
+    image: "${STATIC_ASSETS_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${STATIC_ASSETS_PORT}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose1-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "static-assets"
+    expose:
+      - "${STATIC_ASSETS_PORT}"
+    networks:
+      - "aspire"
+  gateway:
+    image: "${GATEWAY_IMAGE}"
+    environment:
+      OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY: "in_memory"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      HTTP_PORTS: "${GATEWAY_PORT}"
+      ConnectionStrings__redis: "redis:6379,password=${REDIS_PASSWORD}"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_URI: "redis://:${REDIS_PASSWORD}@redis:6379"
+      Jwt__Key: "${JWT_KEY}"
+      ReverseProxy__Clusters__bookmarks__Destinations__destination1__Address: "http://bookmarks-api:${BOOKMARKS_API_PORT}"
+      ReverseProxy__Clusters__auth__Destinations__destination1__Address: "http://auth:${AUTH_PORT}"
+      ReverseProxy__Clusters__static-assets__Destinations__destination1__Address: "http://static-assets:${STATIC_ASSETS_PORT}"
+      ReverseProxy__Clusters__otel-collector__Destinations__destination1__Address: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://compose1-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "gateway"
+    ports:
+      - "${GATEWAY_PORT}"
+    networks:
+      - "aspire"
+networks:
+  aspire:
+    driver: "bridge"
+configs:
+  otel-collector__etc_otelcol-contrib_config.yaml:
+    content: "receivers:\n  otlp:\n    protocols:\n      grpc:\n        endpoint: 0.0.0.0:4317\n      http:\n        endpoint: 0.0.0.0:4318\n        cors:\n          allowed_origins:\n            - \"*\"\n          allowed_headers:\n            - \"Content-Type\"\n          max_age: 7200\n  fluentforward:\n    endpoint: 0.0.0.0:8006\n\nexporters:\n  otlp:\n    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT}\n    tls:\n      insecure: true\n  debug:\n    verbosity: detailed\n\nservice:\n  pipelines:\n    traces:\n      receivers: [otlp]\n      exporters: [otlp, debug]\n    metrics:\n      receivers: [otlp]\n      exporters: [otlp, debug]\n    logs:\n      receivers: [otlp]\n      exporters: [otlp, debug]\n    logs/fluentd:\n      receivers: [fluentforward]\n      exporters: [otlp, debug]"

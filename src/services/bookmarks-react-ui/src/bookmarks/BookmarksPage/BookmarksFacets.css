@@ -1,0 +1,90 @@
+.bookmarks-facets {
+  flex: 0 0 250px;
+  background-color: var(--facets-bg-color, #f5f5f5);
+  color: var(--facets-text-color, #333);
+  padding: 1rem;
+  border-radius: 4px;
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+  border: 1px solid var(--facets-border-color, #e0e0e0);
+}
+
+.bookmarks-facets h3 {
+  margin-top: 0;
+  font-size: 1.1em;
+  margin-bottom: 1rem;
+  color: var(--facets-heading-color, #333);
+}
+
+.tags-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.tags-list li {
+  margin-bottom: 0.5rem;
+}
+
+.tag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95em;
+  padding: 0.25rem;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.tag-checkbox:hover {
+  background-color: var(--tag-checkbox-hover-bg, #efefef);
+}
+
+.tag-checkbox input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: var(--checkbox-accent-color, #0066cc);
+}
+
+.tag-name {
+  flex: 1;
+  word-break: break-word;
+  color: var(--tag-name-color, #333);
+}
+
+.tag-count {
+  color: var(--tag-count-color, #999);
+  font-size: 0.85em;
+  padding: 0.2rem 0.5rem;
+  background-color: var(--tag-count-bg, white);
+  border-radius: 3px;
+  min-width: 2rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.no-tags-message {
+  color: var(--no-tags-color, #999);
+  font-size: 0.9em;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .bookmarks-facets {
+    --facets-bg-color: #2a2a2a;
+    --facets-text-color: #e0e0e0;
+    --facets-border-color: #444;
+    --facets-heading-color: #f0f0f0;
+    --tag-checkbox-hover-bg: #3a3a3a;
+    --checkbox-accent-color: #66b3ff;
+    --tag-name-color: #e0e0e0;
+    --tag-count-color: #999;
+    --tag-count-bg: #1a1a1a;
+    --no-tags-color: #999;
+  }
+}

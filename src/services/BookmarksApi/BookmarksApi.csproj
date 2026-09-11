@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OpenApiDocumentsDirectory>.</OpenApiDocumentsDirectory>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ProtoRoot>Bookmarks/proto</ProtoRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Confluent.SchemaRegistry" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Protobuf" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.FeatureManagement" />
+    <PackageReference Include="Npgsql.DependencyInjection" />
+    <PackageReference Include="protobuf-net.Reflection" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="Bookmarks\proto\*.proto" GrpcServices="None" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\shared\ServiceDefaults\ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>

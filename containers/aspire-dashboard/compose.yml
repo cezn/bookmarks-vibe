@@ -1,0 +1,10 @@
+services:
+  aspire-dashboard:
+    profiles:
+      - infra
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.0
+    restart: no
+    ports:
+      - "0.0.0.0:18888:18888" # ui
+    environment:
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true

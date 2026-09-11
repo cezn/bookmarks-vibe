@@ -1,0 +1,70 @@
+@page "/Account/ConfirmEmail"
+
+@using System.Text
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Confirm email</PageTitle>
+
+<section class="mx-auto max-w-lg space-y-4">
+    <div class="auth-card">
+        <div class="auth-card-body space-y-4">
+            <h1>Confirm email</h1>
+            <StatusMessage Message="@statusMessage" />
+            @if (continueUrl is not null)
+            {
+                <a class="auth-link" href="@continueUrl">Continue</a>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private string? statusMessage;
+    private string? continueUrl;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? UserId { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Code { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId is null || Code is null)
+        {
+            RedirectManager.RedirectTo("");
+            return;
+        }
+
+        var user = await UserManager.FindByIdAsync(UserId);
+        if (user is null)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            statusMessage = $"Error loading user with ID {UserId}";
+        }
+        else
+        {
+            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
+            var result = await UserManager.ConfirmEmailAsync(user, code);
+            if (result.Succeeded)
+            {
+                statusMessage = "Thank you for confirming your email.";
+                continueUrl = ReturnUrl;
+            }
+            else
+            {
+                statusMessage = "Error confirming your email.";
+            }
+        }
+    }
+}

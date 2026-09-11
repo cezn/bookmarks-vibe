@@ -1,0 +1,8 @@
+{
+  "mstest": {
+    "timeout": {
+      "test": 10000,
+      "useCooperativeCancellation": true
+    }
+  }
+}

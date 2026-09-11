@@ -1,0 +1,7 @@
+{
+  "workspaces": [
+    "src/services/bookmarks-react-ui",
+    "src/services/Auth",
+    "tests/e2e-tests"
+  ]
+}

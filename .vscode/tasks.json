@@ -1,0 +1,274 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Docker Compose Up",
+      "type": "shell",
+      "command": "docker-compose -f ./compose.yml --profile infra up ",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "BookmarksApi: Migrate DB",
+      "type": "shell",
+      "command": "./scripts/migrate-db.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/BookmarksApi" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "BookmarksApi: Reset",
+      "type": "shell",
+      "command": "./scripts/reset.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/BookmarksApi" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "BookmarksApi: Init Postgres Connector",
+      "type": "shell",
+      "command": "./scripts/init-postgres-connector.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/BookmarksApi" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "BookmarksApi: Delete Postgres Connector",
+      "type": "shell",
+      "command": "./scripts/delete-postgres-connector.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/BookmarksApi" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "BookmarksApi: Start",
+      "type": "shell",
+      "command": "./scripts/start.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/BookmarksApi" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "SummarizeApi: Start",
+      "type": "shell",
+      "command": "./scripts/start.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/SummarizeApi" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "BookmarksCli: Seed",
+      "type": "shell",
+      "command": "./scripts/seed.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/BookmarksCli" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "React UI: Start",
+      "type": "shell",
+      "command": "./scripts/start.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/src/services/bookmarks-react-ui"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "React UI: Start Sandbox",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev:sandbox"],
+      "options": {
+        "cwd": "${workspaceFolder}/src/services/bookmarks-react-ui"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Gateway: Start",
+      "type": "shell",
+      "command": "./scripts/start.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/Gateway" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Auth: Start",
+      "type": "shell",
+      "command": "./scripts/start.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/Auth" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Auth: Migrate DB",
+      "type": "shell",
+      "command": "./scripts/migrate-db.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/Auth" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "Auth: psql",
+      "type": "shell",
+      "command": "./scripts/psql.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/Auth" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "Auth: Recreate DB",
+      "type": "shell",
+      "command": "./scripts/recreate-db.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/Auth" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "Auth: Build CSS",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build:css"],
+      "options": { "cwd": "${workspaceFolder}/src/services/Auth" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "Auth: Seed Admin",
+      "type": "shell",
+      "command": "dotnet",
+      "args": ["./scripts/seed-admin.cs"],
+      "options": {
+        "cwd": "${workspaceFolder}/src/services/Auth",
+        "env": { "ADMIN_PASSWORD": "Secret12#" }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "TagsBookmarksSubscriber: Start",
+      "type": "shell",
+      "command": "./scripts/start.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/src/services/TagsBookmarksSubscriber"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "React UI: Build",
+      "type": "shell",
+      "command": "./scripts/build.sh",
+      "options": {
+        "cwd": "${workspaceFolder}/src/services/bookmarks-react-ui"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "StaticAssets: Copy",
+      "type": "shell",
+      "command": "./scripts/copy.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/StaticAssets" },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "StaticAssets: Start",
+      "type": "shell",
+      "command": "./scripts/start.sh",
+      "options": { "cwd": "${workspaceFolder}/src/services/StaticAssets" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Run All",
+      "dependsOn": [
+        "Docker Compose Up",
+        "BookmarksApi Start",
+        "SummarizeApi Start",
+        "BookmarksCli Seed",
+        "React UI Start",
+        "Gateway Start"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    // aspire
+    {
+      "label": "Aspire Auth: Seed Admin",
+      "type": "shell",
+      "command": "aspire",
+      "args": ["resource", "auth", "seed-admin"],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    }
+  ]
+}

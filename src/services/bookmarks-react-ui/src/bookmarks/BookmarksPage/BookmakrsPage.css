@@ -1,0 +1,24 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+}
+
+.bookmarks-container {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.5em;
+  text-align: left;
+}
+
+.bookmarks-content {
+  flex: 1;
+}
+
+/* Dark mode support for table */
+@media (prefers-color-scheme: dark) {
+  .bookmarks-container {
+    color: #e0e0e0;
+  }
+}

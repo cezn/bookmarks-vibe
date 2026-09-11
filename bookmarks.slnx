@@ -1,0 +1,34 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/aspire/" />
+  <Folder Name="/aspire/src/">
+    <Project Path="aspire/src/Cezn.Aspire.Hosting.Grate/Cezn.Aspire.Hosting.Grate.csproj" />
+    <Project Path="aspire/src/Cezn.Aspire.Hosting.KafkaConnect/Cezn.Aspire.Hosting.KafkaConnect.csproj" />
+    <Project Path="aspire/src/Cezn.Aspire.Hosting.RedpandaConsole/Cezn.Aspire.Hosting.RedpandaConsole.csproj" />
+    <Project Path="aspire/src/Cezn.Aspire.Hosting.SchemaRegistry/Cezn.Aspire.Hosting.SchemaRegistry.csproj" />
+    <Project Path="aspire/src/Cezn.Aspire.Hosting.SwaggerUI/Cezn.Aspire.Hosting.SwaggerUI.csproj" />
+    <Project Path="aspire/src/Cezn.Aspire.Hosting.Utils/Cezn.Aspire.Hosting.Utils.csproj" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/shared/">
+    <Project Path="src/shared/KafkaConsumerApp/KafkaConsumerApp.csproj" />
+  </Folder>
+  <Project Path="AppHost/AppHost.csproj" />
+  <Project Path="src/services/Auth/Auth.csproj" />
+  <Project Path="tests/services/BookmarksApi.Tests/BookmarksApi.Tests.csproj" />
+  <Project Path="src/services/BookmarksApi/BookmarksApi.csproj" />
+  <Project Path="src/services/BookmarksCli/BookmarksCli.csproj" />
+  <Project Path="tests/services/Gateway.Tests/Gateway.Tests.csproj" />
+  <Project Path="tests/services/Gateway.UnitTests/Gateway.UnitTests.csproj" />
+  <Project Path="src/services/Gateway/Gateway.csproj" />
+  <Project Path="src/services/NotificationsHub/NotificationsHub.csproj" />
+  <Project Path="src/services/PushNotificationsService/PushNotificationsService.csproj" />
+  <Project Path="src/shared/ServiceDefaults/ServiceDefaults.csproj" />
+  <Project Path="src/services/StaticAssets/StaticAssets.csproj" />
+  <Project Path="tests/services/SummarizeApi.Tests/SummarizeApi.Tests.csproj" />
+  <Project Path="src/services/SummarizeApi/SummarizeApi.csproj" />
+  <Project Path="tests/services/TagsBookmarksSubscriber.Tests/TagsBookmarksSubscriber.Tests.csproj" />
+  <Project Path="src/services/TagsBookmarksSubscriber/TagsBookmarksSubscriber.csproj" />
+</Solution>

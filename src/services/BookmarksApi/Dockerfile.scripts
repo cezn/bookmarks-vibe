@@ -1,0 +1,12 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS runtime
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+
+COPY .config/dotnet-tools.json /app/.config/dotnet-tools.json
+RUN dotnet tool restore
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+COPY src/services/BookmarksApi/migrations ./migrations
+COPY src/services/BookmarksApi/scripts ./scripts
+RUN chmod +x ./scripts/*.sh
+CMD ["ls", "-1", "./scripts"]

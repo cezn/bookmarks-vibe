@@ -1,0 +1,13 @@
+include:
+  - ./containers/db/compose.yml
+  - ./containers/redis/compose.yml
+  - ./containers/mailhog/compose.yml
+  - ./containers/aspire-dashboard/compose.yml
+  - ./containers/otel-collector/compose.yml
+  - ./containers/elasticsearch/compose.yml
+  - ./containers/kibana/compose.yml
+  - ./containers/swagger-ui/compose.yml
+  - ./containers/kafka/compose.yml
+  - ./containers/schema-registry/compose.yml
+  - ./containers/kafka-connect/compose.yml
+  - ./containers/console/compose.yml

@@ -1,0 +1,61 @@
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="space-y-1">
+    <li>
+        <NavLink class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
+    </li>
+    <li>
+        <NavLink class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Manage/Email">Email</NavLink>
+    </li>
+    <li>
+        <NavLink class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Manage/ChangePassword">Password</NavLink>
+    </li>
+    @if (hasExternalLogins)
+    {
+        <li>
+            <NavLink class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Manage/ExternalLogins">External logins</NavLink>
+        </li>
+    }
+    <li>
+        <NavLink class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
+    </li>
+    <li>
+        <NavLink class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Manage/Passkeys">Passkeys</NavLink>
+    </li>
+    <li>
+        <NavLink class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Manage/PersonalData">Personal data</NavLink>
+    </li>
+    @if (isAdmin)
+    {
+        <li class="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
+            <NavLink class="flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white" ActiveClass="bg-brand-50 text-brand-700 shadow-sm dark:bg-brand-900/40 dark:text-brand-200" href="Account/Admin/Users">
+                <span>👥 Manage users</span>
+                <span class="auth-badge">Admin</span>
+            </NavLink>
+        </li>
+    }
+</ul>
+
+@code {
+    private bool hasExternalLogins;
+    private bool isAdmin;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+
+        // Check if user is admin
+        var user = await UserManager.GetUserAsync(HttpContext.User);
+        if (user != null)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            isAdmin = roles.Contains("admin");
+        }
+    }
+}

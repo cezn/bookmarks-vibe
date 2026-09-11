@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package bookmarks;
+
+import "Bookmarks/bookmark.proto";
+
+message BookmarkUpdated {
+  Bookmark old_bookmark = 1;
+  Bookmark new_bookmark = 2;
+}

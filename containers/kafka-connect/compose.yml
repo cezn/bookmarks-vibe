@@ -1,0 +1,46 @@
+services:
+  kafka-connect:
+    profiles:
+      - infra
+    build:
+      context: .
+      dockerfile: Dockerfile.kafka-connect
+    image: custom-kafka-connect:7.9.2
+    ports:
+      - "0.0.0.0:8083:8083"
+    depends_on:
+      - broker1
+    mem_limit: 2g
+    environment:
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_BOOTSTRAP_SERVERS: broker1:29092
+      CONNECT_GC_LOG_ENABLED: "false"
+      CONNECT_HEAP_OPTS: -Xms256M -Xmx256M
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: docker-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_LOG_LEVEL: info
+      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: io.debezium.tracing.DebeziumTracingProducerInterceptor
+      ENABLE_OTEL: true
+      KAFKA_OPTS: "-javaagent:/otel/opentelemetry-javaagent.jar -Dotel.instrumentation.kafka.enabled=false"
+      # KAFKA_OPTS: "-javaagent:/otel/opentelemetry-javaagent.jar -Dotel.instrumentation.common.default-enabled=false -Dotel.instrumentation.opentelemetry-api.enabled=true -Dotel.instrumentation.opentelemetry-instrumentation-annotations.enabled=true"
+      OTEL_SERVICE_NAME: "kafka-connect"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://aspire-dashboard:18889"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0,service.instance.id=98a22f18-bcbe-5ee9-ac0b-05b5e7ea203a,deployment.environment=production"
+      OTEL_PROPAGATORS: "tracecontext"
+      OTEL_INSTRUMENTATION_COMMON_DEFAULT_ENABLED: true
+    command:
+      - bash
+      - -c
+      - |
+        export CLASSPATH=$CLASSPATH:/usr/share/java/otel-lib/*
+        /etc/confluent/docker/run

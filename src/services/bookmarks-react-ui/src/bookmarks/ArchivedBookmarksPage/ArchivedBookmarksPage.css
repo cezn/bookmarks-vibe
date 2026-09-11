@@ -1,0 +1,179 @@
+.archived-bookmarks-table-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1em;
+  overflow-x: auto;
+}
+
+.archived-bookmarks-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  color: #333;
+}
+
+.archived-bookmarks-table-container table thead {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #ddd;
+}
+
+.archived-bookmarks-table-container table thead th {
+  padding: 0.75em 0.5em;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.archived-bookmarks-table-container table thead th:hover {
+  background-color: #e8e8e8;
+}
+
+.archived-bookmarks-table-container table tbody td {
+  padding: 0.75em 0.5em;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+.archived-bookmarks-table-container table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.archived-bookmarks-table-container table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.archived-bookmarks-table-container table tbody tr:nth-child(odd) {
+  background-color: #fafafa;
+}
+
+.archived-bookmarks-table-container table tbody td a {
+  color: #0066cc;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.archived-bookmarks-table-container table tbody td a:hover {
+  text-decoration: underline;
+  color: #0052a3;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+.restore-btn,
+.delete-btn {
+  padding: 0.4em 0.8em;
+  font-size: 0.9em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  color: #333;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.restore-btn:hover {
+  background-color: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+.delete-btn:hover {
+  background-color: #f44336;
+  color: white;
+  border-color: #f44336;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2em;
+  color: #666;
+}
+
+.empty-state p {
+  margin: 0.5em 0;
+  color: #666;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .archived-bookmarks-table-container table {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+  }
+
+  .archived-bookmarks-table-container table thead {
+    background-color: #1a1a1a;
+    border-bottom-color: #444;
+  }
+
+  .archived-bookmarks-table-container table thead th {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    border-color: #444;
+  }
+
+  .archived-bookmarks-table-container table thead th:hover {
+    background-color: #2a2a2a;
+  }
+
+  .archived-bookmarks-table-container table tbody tr {
+    border-color: #444;
+  }
+
+  .archived-bookmarks-table-container table tbody tr:hover {
+    background-color: #333;
+  }
+
+  .archived-bookmarks-table-container table tbody tr:nth-child(odd) {
+    background-color: #2a2a2a;
+  }
+
+  .archived-bookmarks-table-container table tbody td {
+    border-color: #444;
+    color: #e0e0e0;
+  }
+
+  .archived-bookmarks-table-container table tbody td a {
+    color: #66b3ff;
+  }
+
+  .archived-bookmarks-table-container table tbody td a:hover {
+    color: #99ccff;
+  }
+
+  .restore-btn,
+  .delete-btn {
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+
+  .restore-btn:hover {
+    background-color: #4caf50;
+    color: white;
+    border-color: #4caf50;
+  }
+
+  .delete-btn:hover {
+    background-color: #f44336;
+    color: white;
+    border-color: #f44336;
+  }
+
+  .empty-state {
+    color: #999;
+  }
+
+  .empty-state p {
+    color: #999;
+  }
+}

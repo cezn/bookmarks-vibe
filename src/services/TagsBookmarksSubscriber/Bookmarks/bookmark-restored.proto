@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package bookmarks;
+
+import "Bookmarks/bookmark.proto";
+
+message BookmarkRestored {
+  Bookmark bookmark = 1;
+}

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="Bookmarks\*.proto" GrpcServices="None" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\shared\ServiceDefaults\ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\src\shared\KafkaConsumerApp\KafkaConsumerApp.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="./scripts/*.cs" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <ProtoRoot>.</ProtoRoot>
+  </PropertyGroup>
+</Project>

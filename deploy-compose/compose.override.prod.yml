@@ -1,0 +1,106 @@
+x-otel-env: &otel-env
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://aspire-dashboard:18889"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  OTEL_EXPORTER_OTLP_TIMEOUT: "10000"
+  OTEL_EXPORTER_OTLP_COMPRESSION: "none"
+  OTEL_EXPORTER_OTLP_INSECURE: "true"
+  OTEL_RESOURCE_ATTRIBUTES: "service.version=1.0,service.instance.id=278cb83e-9fd4-54fe-93fd-7cbbb65378f5,deployment.environment=production"
+
+services:
+  broker1:
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker1:29092,EXT://broker1:9092 # advertise these listeners as brokers to clients
+
+  staticassets:
+    profiles:
+      - app
+    image: staticassets:latest
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "staticassets"
+  gateway:
+    profiles:
+      - app
+    image: gateway:latest
+    user: 1654:1654
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "gateway"
+      Kestrel__Certificates__Default__Path: /app/certs/cert.pem
+      Kestrel__Certificates__Default__KeyPath: /app/certs/key.pem
+      ASPNETCORE_URLS: https://+:8080
+    ports:
+      - 443:8080
+      - 8080:8080
+    volumes:
+      - ./src/services/Gateway/cert.pem:/app/certs/cert.pem:ro
+      - ./src/services/Gateway/key.pem:/app/certs/key.pem:ro
+  auth:
+    profiles:
+      - app
+    image: auth:latest
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "auth"
+  bookmarksapi:
+    profiles:
+      - app
+    image: bookmarksapi:latest
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "bookmarksapi"
+  tagsbookmarkssubscriber:
+    profiles:
+      - app
+    image: tagsbookmarkssubscriber:latest
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "tagsbookmarkssubscriber"
+
+  summarizeapi:
+    profiles:
+      - app
+    image: summarizeapi:latest
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "summarizeapi"
+
+  bookmarks-migrations:
+    profiles:
+      - infra
+    build:
+      context: .
+      dockerfile: src/services/BookmarksApi/Dockerfile.scripts
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "bookmarks-migrations"
+    depends_on:
+      - db
+    command: ./scripts/migrate-db.sh db
+
+  bookmarks-debezium-init:
+    profiles:
+      - infra
+    build:
+      context: .
+      dockerfile: src/services/BookmarksApi/Dockerfile.scripts
+    environment:
+      <<: *otel-env
+      ASPNETCORE_ENVIRONMENT: Production
+      OTEL_SERVICE_NAME: "bookmarks-debezium-init"
+    restart: on-failure
+    depends_on:
+      - kafka-connect
+    entrypoint: ""
+    command: ./scripts/init-postgres-connector.sh kafka-connect 8083
+# networks:
+#   default:
+#     external: true
+#     name: bookmarks-vibe_default

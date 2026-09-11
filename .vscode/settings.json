@@ -1,0 +1,13 @@
+{
+  // Set environment variables for all integrated terminals in this workspace
+  "terminal.integrated.env.linux": {
+    "PGHOST": "localhost",
+    "PGPORT": "5432",
+    "PGUSER": "postgres",
+    "PGPASSWORD": "secret",
+    "PGDATABASE": "bookmarks"
+  },
+  "chat.tools.terminal.autoApprove": {
+    "dotnet run": true
+  }
+}

@@ -1,0 +1,30 @@
+## Plan
+
+- [] Docker containers
+  - [x] Postgres
+  - [x] Kafka ecosystem
+  - [x] Mailhog
+  - [x] Redis
+   - [x] Swagger
+    - [x] Pass allowed origin to `AddCustomOpenApi` pointing to Swagger URL.
+    - [x] Configure URLs for specific resources to point to swagger.
+  - [] Otel collector
+  - [] Elasticsearch (optional)
+  - [] Kibana (optional)
+- [] Projects
+  - [] Auth
+    - [] Fix swagger
+  - [] Gateway
+  - [] BookmarksApi
+  - [] StaticAssets
+  - [] React frontend
+  - [] TagsSubscriber
+- [] Hide less useful urls from dashboard. Keep:
+  - Redpanda Console UI
+  - PgAdmin
+  - Redis Insight
+- [x] Fix otel in kafka-connect
+- [x] Ensure Grate migrations are ran after database resource is health. Currently, it waits for 'running' state.
+- [>] Implement postgresql debezium connector delete command.
+- [] Stabilize postgres connector.
+  - [] When connector is sent do kafka connect and no database exists, it stays in a broken state.

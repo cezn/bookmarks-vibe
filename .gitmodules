@@ -1,0 +1,3 @@
+[submodule "aspire"]
+	path = aspire
+	url = https://github.com/cezn/aspire.git

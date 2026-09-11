@@ -1,0 +1,57 @@
+.bookmarks-table-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 1em;
+}
+
+/* Dark mode support for table */
+@media (prefers-color-scheme: dark) {
+  .bookmarks-table-container table {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  .bookmarks-table-container table thead {
+    background-color: #1a1a1a;
+    border-bottom-color: #444;
+  }
+
+  .bookmarks-table-container table thead th {
+    color: #f0f0f0;
+    border-color: #444;
+  }
+
+  .bookmarks-table-container table tbody tr {
+    border-color: #444;
+  }
+
+  .bookmarks-table-container table tbody tr:hover {
+    background-color: #333;
+  }
+
+  .bookmarks-table-container table tbody td {
+    border-color: #444;
+    color: #e0e0e0;
+  }
+
+  .bookmarks-table-container table tbody td a {
+    color: #66b3ff;
+  }
+
+  .bookmarks-table-container table tbody td a:hover {
+    color: #99ccff;
+  }
+
+  .bookmarks-table-container table tbody td button,
+  .bookmarks-table-container table tbody td [role="button"] {
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+
+  .bookmarks-table-container table tbody td button:hover,
+  .bookmarks-table-container table tbody td [role="button"]:hover {
+    background-color: #4a4a4a;
+  }
+}

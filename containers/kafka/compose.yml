@@ -1,0 +1,30 @@
+services:
+  broker1:
+    profiles:
+      - infra
+    image: confluentinc/cp-kafka:7.6.1
+    ports:
+      - "0.0.0.0:9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,EXT://0.0.0.0:9092 # listining socket connections
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker1:29092,EXT://127.0.0.1:9092 # advertise these listeners as brokers to clients
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXT:PLAINTEXT # assign security protocols to listeners
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker1:29093 # defines the controller quorum
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER # defines which listener is used for controller communication
+      # optional
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # by default its 3 and consumer can't join
+      KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 2 # 50 by default, produces tons of logs on broker
+      KAFKA_REPLICA_FETCH_WAIT_MAX_MS: 5000 # replica waits 5s before making another fetch to primary
+      KAFKA_LOG_MESSAGE_TIMESTAMP_TYPE: LogAppendTime # use broker time when messages are produced (ignores timestamp from producers)
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-broker-api-versions --bootstrap-server localhost:9092",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

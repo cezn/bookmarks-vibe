@@ -1,0 +1,1241 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "BookmarksApi | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/bookmarks": {
+      "get": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Get user's bookmarks with optional search query, sorting, and pagination",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Optional search query string. Supports full-text search with phrases, boolean operators (AND, OR, NOT), and word variations.\nE.g. postgres &amp; (linux | windows)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "Optional array of tag names to filter bookmarks. Bookmarks containing any of these tags will be returned.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Optional sort field. Values: id, title, createdAt, updatedAt. Default: id",
+            "schema": {
+              "enum": [
+                "Id",
+                "Title",
+                "CreatedAt",
+                "UpdatedAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of bookmarks to return per page. Default: 20",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "description": "Optional sort direction. Values: asc, desc. Default: desc",
+            "schema": {
+              "enum": [
+                "Asc",
+                "Desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Optional cursor for pagination. Use the NextCursor from a previous response to get the next page of results. Encoded as a base64 string.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of bookmarks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookmarksResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Create a new bookmark",
+        "requestBody": {
+          "description": "The bookmark to create",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Bookmark"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The created bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/{id}": {
+      "get": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Get a bookmark by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The bookmark ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Delete a bookmark by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The bookmark ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Bookmark deleted"
+          },
+          "404": {
+            "description": "Bookmark not found"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Update a bookmark by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The bookmark ID",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The updated bookmark data",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Bookmark"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The updated bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/tags": {
+      "get": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Get tags and their counts from user's bookmarks",
+        "responses": {
+          "200": {
+            "description": "List of tags with counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagFacet"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/archived": {
+      "get": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Get user's archived bookmarks with cursor-based pagination",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of bookmarks to return per page. Default: 20",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Optional cursor for pagination. Use the NextCursor from a previous response to get the next page of results. Encoded as a base64 string.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of archived bookmarks sorted by archive date descending",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookmarksResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/import/msedge": {
+      "post": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Import bookmarks from Microsoft Edge bookmarks JSON file",
+        "requestBody": {
+          "description": "The Edge bookmarks parser service",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "List of imported bookmarks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Bookmark"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid file format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/{id}/archive": {
+      "post": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Archive a bookmark by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The bookmark ID to archive",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The archived bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found or already archived"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/{id}/restore": {
+      "post": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Restore a bookmark from archive by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The bookmark ID to restore",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The restored bookmark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bookmark"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found or not archived"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/{id}/permanent": {
+      "delete": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Permanently delete an archived bookmark by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The bookmark ID to permanently delete",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Bookmark permanently deleted"
+          },
+          "404": {
+            "description": "Bookmark not found or not archived"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/archive": {
+      "post": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Archive multiple bookmarks by IDs",
+        "requestBody": {
+          "description": "Array of bookmark IDs to archive",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Number of bookmarks archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/restore": {
+      "post": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Restore multiple bookmarks from archive by IDs",
+        "requestBody": {
+          "description": "Array of bookmark IDs to restore",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Number of bookmarks restored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/tags/{tag}": {
+      "delete": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Remove a tag from all bookmarks",
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "path",
+            "description": "The tag to remove",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag removal result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveTagResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/tags/rename": {
+      "put": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Rename a tag on all bookmarks",
+        "parameters": [
+          {
+            "name": "oldName",
+            "in": "query",
+            "description": "The old tag name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "newName",
+            "in": "query",
+            "description": "The new tag name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag rename result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RenameTagResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/bookmarks/tags/move": {
+      "put": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "summary": "Move a tag to the front or end of the tag list for all bookmarks",
+        "parameters": [
+          {
+            "name": "tagName",
+            "in": "query",
+            "description": "The tag to move",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "position",
+            "in": "query",
+            "description": "The target position: \"front\" or \"end\"",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag move result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MoveTagResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid position parameter"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/tags": {
+      "get": {
+        "tags": [
+          "TagsEndpoints"
+        ],
+        "summary": "Get user's tags with optional search query, sorting, and pagination",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Optional search query string.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Optional sort field. Values: id, name, usageCount, createdAt. Default: id",
+            "schema": {
+              "enum": [
+                "Id",
+                "Name",
+                "UsageCount",
+                "CreatedAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "description": "Optional sort direction. Values: asc, desc. Default: desc",
+            "schema": {
+              "enum": [
+                "Asc",
+                "Desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of tags to return per page. Default: 20",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Optional cursor for pagination. Use the NextCursor from a previous response to get the next page of results. Encoded as a base64 string.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTagsResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/tags/bulk/add": {
+      "post": {
+        "tags": [
+          "TagsEndpoints"
+        ],
+        "summary": "Add multiple tags",
+        "requestBody": {
+          "description": "The request containing tag names to add",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTagsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The added tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/tags/bulk/remove": {
+      "post": {
+        "tags": [
+          "TagsEndpoints"
+        ],
+        "summary": "Remove tags by name",
+        "requestBody": {
+          "description": "The request containing tag names to remove",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveTagsByNameRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Tags removed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/flag/{name}": {
+      "get": {
+        "tags": [
+          "BookmarksEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddTagsRequest": {
+        "required": [
+          "tagNames"
+        ],
+        "type": "object",
+        "properties": {
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Bookmark": {
+        "required": [
+          "id",
+          "title",
+          "url",
+          "summary",
+          "createdAt",
+          "updatedAt",
+          "tags",
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userId": {
+            "type": "string"
+          },
+          "archivedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "GetBookmarksResponse": {
+        "required": [
+          "bookmarks",
+          "tags",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "bookmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bookmark"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFacet"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GetTagsResponse": {
+        "required": [
+          "tags",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
+      },
+      "MoveTagResponse": {
+        "required": [
+          "movedTag",
+          "bookmarksUpdated"
+        ],
+        "type": "object",
+        "properties": {
+          "movedTag": {
+            "type": "string"
+          },
+          "bookmarksUpdated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RemoveTagResponse": {
+        "required": [
+          "removedTag",
+          "bookmarksUpdated"
+        ],
+        "type": "object",
+        "properties": {
+          "removedTag": {
+            "type": "string"
+          },
+          "bookmarksUpdated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "RemoveTagsByNameRequest": {
+        "required": [
+          "tagNames"
+        ],
+        "type": "object",
+        "properties": {
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RenameTagResponse": {
+        "required": [
+          "renamedTag",
+          "newTag",
+          "bookmarksUpdated"
+        ],
+        "type": "object",
+        "properties": {
+          "renamedTag": {
+            "type": "string"
+          },
+          "newTag": {
+            "type": "string"
+          },
+          "bookmarksUpdated": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "Tag": {
+        "required": [
+          "id",
+          "name",
+          "usageCount",
+          "userId",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "usageCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TagFacet": {
+        "required": [
+          "name",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Bearer JWT authentication.",
+        "scheme": "bearer",
+        "bearerFormat": "Json Web Token"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "BookmarksEndpoints"
+    },
+    {
+      "name": "TagsEndpoints"
+    }
+  ]
+}
