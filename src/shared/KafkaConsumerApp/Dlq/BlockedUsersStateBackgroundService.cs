@@ -31,6 +31,11 @@ public sealed class BlockedUsersStateBackgroundService(
     {
         consumer.Subscribe(options.BlockedUsersTopic);
 
+        // Snapshot the high watermark (end offset) of the state topic before consuming.
+        // We don't have to worry about later messages, as our partitions are blocked until
+        // we reach the watermark of blocker users.
+        var watermark = SnapshotWatermark(ct);
+
         var rebuildSignalled = false;
 
         while (!ct.IsCancellationRequested)
@@ -40,23 +45,6 @@ public sealed class BlockedUsersStateBackgroundService(
                 var item = consumer.Consume(TimeSpan.FromMilliseconds(250));
                 if (item is null)
                     continue;
-
-                // The state topic is compacted and single-partition, so reaching the partition
-                // end means we have replayed every live state record. Signal readiness once so
-                // the main consumer can start processing with an accurate IsBlocked() view.
-                if (item.IsPartitionEOF)
-                {
-                    if (!rebuildSignalled)
-                    {
-                        rebuildSignalled = true;
-                        ready.Signal();
-                        logger.LogInformation(
-                            "Blocked-users store rebuilt from topic {Topic}",
-                            options.BlockedUsersTopic
-                        );
-                    }
-                    continue;
-                }
 
                 if (string.IsNullOrWhiteSpace(item.Message.Key))
                     continue;
@@ -71,6 +59,21 @@ public sealed class BlockedUsersStateBackgroundService(
                     blockedUsersStore.Block(item.Message.Key, item.Offset.Value);
                 else
                     blockedUsersStore.Unblock(item.Message.Key, item.Offset.Value);
+
+                // We have replayed every live state record that existed at startup. Signal
+                // readiness once so the main consumer can start processing with an accurate
+                // IsBlocked() view. Keep consuming afterwards so the store stays current with
+                // new block/unblock updates.
+                if (!rebuildSignalled && item.Offset.Value >= watermark)
+                {
+                    rebuildSignalled = true;
+                    ready.Signal();
+                    logger.LogInformation(
+                        "Blocked-users store rebuilt from topic {Topic} (watermark {Watermark})",
+                        options.BlockedUsersTopic,
+                        watermark
+                    );
+                }
             }
             catch (OperationCanceledException)
             {
@@ -83,5 +86,42 @@ public sealed class BlockedUsersStateBackgroundService(
         }
 
         consumer.Close();
+    }
+
+    /// <summary>
+    /// Returns the high watermark (end offset) of the state topic's partition, i.e. the offset
+    /// of the next record to be appended. Records at offsets below this value are the live state
+    /// that must be replayed. The state topic is single-partition, so partition 0 is queried
+    /// directly. Retries until the topic/partition is known to the broker (it may not exist yet
+    /// at startup).
+    /// </summary>
+    private long SnapshotWatermark(CancellationToken ct)
+    {
+        var topicPartition = new TopicPartition(options.BlockedUsersTopic, 0);
+
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                var watermarks = consumer.QueryWatermarkOffsets(topicPartition, TimeSpan.FromSeconds(5));
+                return watermarks.High.Value;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Could not snapshot watermark for topic {Topic}; retrying",
+                    options.BlockedUsersTopic
+                );
+            }
+
+            Task.Delay(TimeSpan.FromMilliseconds(250), ct).Wait(ct);
+        }
+
+        throw new OperationCanceledException(ct);
     }
 }
