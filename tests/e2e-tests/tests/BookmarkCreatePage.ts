@@ -17,13 +17,13 @@ export class BookmarkCreatePage {
   }
 
   async submit() {
-    await this.page.getByRole("button", { name: /submit/i }).click();
+    await this.page.getByRole("button", { name: /create bookmark/i }).click();
   }
 
   async getUrlValidationMessage(): Promise<string> {
     return await this.page.evaluate(() => {
       const urlInput = document.querySelector(
-        'input[type="url"]'
+        'input[type="url"]',
       ) as HTMLInputElement;
       return urlInput?.validationMessage || "";
     });

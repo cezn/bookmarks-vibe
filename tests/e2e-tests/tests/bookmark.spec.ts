@@ -2,38 +2,17 @@ import { test as base, expect, Locator, Page } from "@playwright/test";
 import { BookmarksPage } from "./BookmarksPage";
 import { BookmarkCreatePage } from "./BookmarkCreatePage";
 import { BookmarkEditPage } from "./BookmarkEditPage";
+import { registerAndLogin } from "./helpers/auth";
 
 type MyFixtures = {
   authenticatedPage: Page;
 };
 
 const test = base.extend<MyFixtures>({
-  authenticatedPage: async ({ page }, use) => {
-    const uniqueId = Date.now();
-    const testEmail = `test-${uniqueId}@example.com`;
-    const testPassword = "TestPass123!";
-
-    // Register new user
-    await page.goto("http://localhost:5005");
-    await page.getByRole("link", { name: "Register as a new user" }).click();
-    await page.getByRole("textbox", { name: "Email" }).fill(testEmail);
-    await page
-      .getByRole("textbox", { name: "Password", exact: true })
-      .fill(testPassword);
-    await page
-      .getByRole("textbox", { name: "Confirm Password" })
-      .fill(testPassword);
-    await page.getByRole("button", { name: "Register" }).click();
-    // Confirm email
-    await page
-      .getByRole("link", { name: "Click here to confirm your account" })
-      .click();
-
-    // Login
-    await page.goto("http://localhost:5005");
-    await page.getByRole("textbox", { name: "Email" }).fill(testEmail);
-    await page.getByRole("textbox", { name: "Password" }).fill(testPassword);
-    await page.getByRole("button", { name: "Log in", exact: true }).click();
+  authenticatedPage: async ({ page, request }, use) => {
+    // Register a new user, confirm the account via the MailHog email,
+    // and log in.
+    await registerAndLogin(page, request);
 
     await use(page);
   },
@@ -70,10 +49,10 @@ test.describe("Bookmarks CRUD", () => {
     // Check tags
     // tags column is truncated, so check only first 30 chars
     const tagsText = await extractTagsText(
-      await listPage.getBookmarkTags(bookmarkTitle)
+      await listPage.getBookmarkTags(bookmarkTitle),
     );
     await expect(tagsText.slice(0, 30)).toBe(
-      bookmarkTags.join(", ").slice(0, 30)
+      bookmarkTags.join(", ").slice(0, 30),
     );
 
     // Edit the bookmark
@@ -87,10 +66,10 @@ test.describe("Bookmarks CRUD", () => {
     await expect(await listPage.getBookmarkUrl(updatedUrl)).toBeVisible();
     // Check updated tags
     const updatedTagsText = await extractTagsText(
-      await listPage.getBookmarkTags(updatedTitle)
+      await listPage.getBookmarkTags(updatedTitle),
     );
     await expect(updatedTagsText.slice(0, 30)).toBe(
-      updatedTags.join(", ").slice(0, 30)
+      updatedTags.join(", ").slice(0, 30),
     );
 
     // Delete the bookmark
@@ -98,7 +77,7 @@ test.describe("Bookmarks CRUD", () => {
 
     // Should not see the bookmark anymore
     await expect(
-      await listPage.getBookmarkTitle(updatedTitle)
+      await listPage.getBookmarkTitle(updatedTitle),
     ).not.toBeVisible();
   });
 
@@ -189,17 +168,17 @@ test.describe("Bookmarks Search", () => {
 
     // Check tags are visible
     const updatedTagsText = await extractTagsText(
-      await listPage.getBookmarkTags(title1)
+      await listPage.getBookmarkTags(title1),
     );
     await expect(updatedTagsText.slice(0, 30)).toBe(
-      tags1.join(", ").slice(0, 30)
+      tags1.join(", ").slice(0, 30),
     );
 
     const updatedTagsText2 = await extractTagsText(
-      await listPage.getBookmarkTags(title2)
+      await listPage.getBookmarkTags(title2),
     );
     await expect(updatedTagsText2.slice(0, 30)).toBe(
-      tags2.join(", ").slice(0, 30)
+      tags2.join(", ").slice(0, 30),
     );
 
     // Search by title1

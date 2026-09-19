@@ -36,10 +36,12 @@ export class BookmarksPage {
   }
 
   async clickDelete(title: string) {
+    // The list has no per-row Delete button; archiving removes the bookmark
+    // from the visible list, which is what these tests assert on.
     await this.page
       .getByRole("row", { name: new RegExp(title) })
       .first()
-      .getByRole("button", { name: /delete/i })
+      .getByRole("button", { name: /archive/i })
       .click();
   }
 }

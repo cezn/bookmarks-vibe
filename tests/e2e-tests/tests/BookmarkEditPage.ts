@@ -28,6 +28,6 @@ export class BookmarkEditPage {
   }
 
   async save() {
-    await this.page.getByRole("button", { name: /save/i }).click();
+    await this.page.getByRole("button", { name: /update bookmark/i }).click();
   }
 }
