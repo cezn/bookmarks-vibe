@@ -15,7 +15,11 @@ public interface IDeadLetterPublisher
         CancellationToken ct
     );
 
-    Task<bool> TryPublishBlockedUserState(string userId, bool blocked, string reason, CancellationToken ct);
+    /// <summary>
+    /// Publishes a blocked-user state change and returns the assigned Kafka offset, which is the
+    /// monotonic per-key version for the compacted state topic. Returns <c>null</c> on failure.
+    /// </summary>
+    Task<long?> TryPublishBlockedUserState(string userId, bool blocked, string reason, CancellationToken ct);
 }
 
 public sealed class KafkaDeadLetterPublisher(
@@ -77,24 +81,24 @@ public sealed class KafkaDeadLetterPublisher(
         return dlqMessage;
     }
 
-    public async Task<bool> TryPublishBlockedUserState(string userId, bool blocked, string reason, CancellationToken ct)
+    public async Task<long?> TryPublishBlockedUserState(string userId, bool blocked, string reason, CancellationToken ct)
     {
         if (!options.Enabled || string.IsNullOrWhiteSpace(userId))
-            return true;
+            return null;
 
         try
         {
-            await producer.ProduceAsync(
+            var result = await producer.ProduceAsync(
                 options.BlockedUsersTopic,
                 CreateMessageForUserBlock(userId, blocked, reason),
                 ct
             );
-            return true;
+            return result.Offset.Value;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to publish blocked user state for user {UserId}", userId);
-            return false;
+            return null;
         }
     }
 

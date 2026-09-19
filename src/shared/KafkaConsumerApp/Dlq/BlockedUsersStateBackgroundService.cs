@@ -40,10 +40,13 @@ public sealed class BlockedUsersStateBackgroundService(
                 var blocked =
                     item.Message.Value is not null && Encoding.UTF8.GetString(item.Message.Value).Trim() == "1";
 
+                // The message offset is the monotonic per-key version. Passing it lets the store
+                // ignore stale/duplicate updates, so this consumer and the direct mutation in
+                // KafkaDlqFacade can never leave the store in an inconsistent state.
                 if (blocked)
-                    blockedUsersStore.Block(item.Message.Key);
+                    blockedUsersStore.Block(item.Message.Key, item.Offset.Value);
                 else
-                    blockedUsersStore.Unblock(item.Message.Key);
+                    blockedUsersStore.Unblock(item.Message.Key, item.Offset.Value);
             }
             catch (OperationCanceledException)
             {

@@ -5,29 +5,62 @@ namespace KafkaConsumerApp.Dlq;
 public interface IBlockedUsersStore
 {
     bool IsBlocked(string userId);
-    void Block(string userId);
-    void Unblock(string userId);
+
+    /// <summary>
+    /// Marks the user as blocked, but only if <paramref name="version"/> is newer than the
+    /// last applied version for that user. The version is the Kafka offset of the state message,
+    /// which is monotonic per key on the single-partition compacted state topic.
+    /// </summary>
+    void Block(string userId, long version);
+
+    /// <summary>
+    /// Marks the user as unblocked, but only if <paramref name="version"/> is newer than the
+    /// last applied version for that user.
+    /// </summary>
+    void Unblock(string userId, long version);
 }
 
 public sealed class InMemoryBlockedUsersStore : IBlockedUsersStore
 {
-    private readonly ConcurrentDictionary<string, byte> _blockedUsers = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, (long Version, bool Blocked)> _state = new(StringComparer.Ordinal);
 
-    public bool IsBlocked(string userId) => _blockedUsers.ContainsKey(userId);
+    public bool IsBlocked(string userId) =>
+        !string.IsNullOrWhiteSpace(userId) && _state.TryGetValue(userId, out var s) && s.Blocked;
 
-    public void Block(string userId)
+    public void Block(string userId, long version)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return;
 
-        _blockedUsers[userId] = 1;
+        Apply(userId, version, blocked: true);
     }
 
-    public void Unblock(string userId)
+    public void Unblock(string userId, long version)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return;
 
-        _blockedUsers.TryRemove(userId, out _);
+        Apply(userId, version, blocked: false);
+    }
+
+    private void Apply(string userId, long version, bool blocked)
+    {
+        while (true)
+        {
+            if (!_state.TryGetValue(userId, out var current))
+            {
+                // No prior state: accept the first update we see.
+                if (_state.TryAdd(userId, (version, blocked)))
+                    return;
+                continue; // lost the add race, re-read
+            }
+
+            if (version <= current.Version)
+                return; // stale or duplicate update, ignore
+
+            if (_state.TryUpdate(userId, (version, blocked), current))
+                return;
+            // lost the update race, re-read and retry
+        }
     }
 }

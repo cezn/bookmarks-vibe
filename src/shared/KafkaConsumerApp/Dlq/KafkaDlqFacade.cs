@@ -54,17 +54,19 @@ public sealed class KafkaDlqFacade(
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
-            var blocked = await deadLetterPublisher.TryPublishBlockedUserState(
+            var version = await deadLetterPublisher.TryPublishBlockedUserState(
                 userId,
                 blocked: true,
                 reason: reason,
                 ct
             );
 
-            if (!blocked)
+            if (version is null)
                 return DlqProcessingOutcome.Seek;
 
-            blockedUsersStore.Block(userId);
+            // Apply immediately (no lag window). The version (Kafka offset) makes this safe to
+            // race with the background service: a stale update can never overwrite a newer one.
+            blockedUsersStore.Block(userId, version.Value);
         }
 
         return DlqProcessingOutcome.StoreOffset;
@@ -72,14 +74,14 @@ public sealed class KafkaDlqFacade(
 
     public async Task HandleReplaySuccessAsync(string userId, CancellationToken ct)
     {
-        var unblocked = await deadLetterPublisher.TryPublishBlockedUserState(
+        var version = await deadLetterPublisher.TryPublishBlockedUserState(
             userId,
             blocked: false,
             reason: "replay_succeeded",
             ct
         );
 
-        if (unblocked)
-            blockedUsersStore.Unblock(userId);
+        if (version is not null)
+            blockedUsersStore.Unblock(userId, version.Value);
     }
 }
