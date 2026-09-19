@@ -26,10 +26,12 @@ var schemaRegistry = builder
     .WithKafka(kafka)
     .WithLifetime(ContainerLifetime.Persistent);
 
+var otelCollector = builder.AddOtelCollector("otel-collector");
+
 var kafkaConnect = builder
     .AddKafkaConnect("kafka-connect")
     .WithKafka(kafka)
-    .WithOtel()
+    .WithOtel(otelCollector)
     .WithLifetime(ContainerLifetime.Persistent);
 
 var kafkaConsole = builder
@@ -51,17 +53,24 @@ var redis = builder
 
 var swagger = builder.AddSwaggerUI().WithUrlForEndpoint("http", url => url.DisplayText = "Swagger UI");
 
-var otelCollector = builder.AddOtelCollector("otel-collector");
-
 // services
-var auth = builder.AddAuth("auth", pg, redis, mailhog, swagger);
-var bookmarksApi = builder.AddBookmarks("bookmarks-api", pg, kafkaConnect, schemaRegistry, jwtKey, swagger);
+var auth = builder.AddAuth("auth", pg, redis, mailhog, swagger, otelCollector);
+var bookmarksApi = builder.AddBookmarks(
+    "bookmarks-api",
+    pg,
+    kafkaConnect,
+    schemaRegistry,
+    jwtKey,
+    swagger,
+    otelCollector
+);
 var tagsBookmarksSubscriber = builder.AddTagsBookmarksSubscriber(
     "tags-bookmarks-subscriber",
     kafka,
     schemaRegistry,
     bookmarksApi,
-    bookmarksApiKey
+    bookmarksApiKey,
+    otelCollector
 );
 var ui = builder.AddViteApp("ui", "../src/services/bookmarks-react-ui");
 var staticAssets = builder.ExecutionContext.IsPublishMode

@@ -34,6 +34,7 @@ public static class GatewayServiceExtensions
                     "ReverseProxy__Clusters__otel-collector__Destinations__destination1__Address"
                 ] = otelCollector.GetEndpoint("http");
             })
+            .WithOtlpExporterViaCollector(otelCollector)
             .WithUrlForEndpoint("http", url => url.DisplayText = "Gateway");
 
         return gateway;

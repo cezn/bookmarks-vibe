@@ -12,7 +12,8 @@ public static class TagsBookmarksSubscriberServiceExtensions
         IResourceBuilder<KafkaServerResource> kafka,
         IResourceBuilder<SchemaRegistryResource> schemaRegistry,
         IResourceBuilder<ProjectResource> bookmarksApi,
-        IResourceBuilder<ParameterResource> bookmarksApiKey
+        IResourceBuilder<ParameterResource> bookmarksApiKey,
+        IResourceBuilder<ContainerResource> otelCollector
     )
     {
         var subscriber = builder
@@ -28,7 +29,8 @@ public static class TagsBookmarksSubscriberServiceExtensions
                 ctx.EnvironmentVariables["SchemaRegistryUrl"] = schemaRegistry.GetEndpoint("http");
                 ctx.EnvironmentVariables["BookmarksApi__Url"] = bookmarksApi.GetEndpoint("http");
             })
-            .WithEnvironment("BookmarksApi__ApiKey", bookmarksApiKey);
+            .WithEnvironment("BookmarksApi__ApiKey", bookmarksApiKey)
+            .WithOtlpExporterViaCollector(otelCollector);
 
         return subscriber;
     }

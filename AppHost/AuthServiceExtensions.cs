@@ -13,7 +13,8 @@ public static class AuthServiceExtensions
         IResourceBuilder<PostgresServerResource> postgres,
         IResourceBuilder<RedisResource> redis,
         IResourceBuilder<ContainerResource> mailhog,
-        IResourceBuilder<SwaggerUIResource> swagger
+        IResourceBuilder<SwaggerUIResource> swagger,
+        IResourceBuilder<ContainerResource> otelCollector
     )
     {
         var authDb = postgres.AddDatabase("authdb");
@@ -67,7 +68,8 @@ public static class AuthServiceExtensions
                     IconVariant = IconVariant.Filled,
                 }
             )
-            .WithSwagger(swagger, "Auth");
+            .WithSwagger(swagger, "Auth")
+            .WithOtlpExporterViaCollector(otelCollector);
 
         return auth;
     }

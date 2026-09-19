@@ -16,7 +16,8 @@ public static class BookmarksServiceExtensions
         IResourceBuilder<KafkaConnectResource> kafkaConnect,
         IResourceBuilder<SchemaRegistryResource> schemaRegistry,
         IResourceBuilder<ParameterResource> jwtKey,
-        IResourceBuilder<SwaggerUIResource> swagger
+        IResourceBuilder<SwaggerUIResource> swagger,
+        IResourceBuilder<ContainerResource> otelCollector
     )
     {
         var bookmarksDb = postgres.AddDatabase("bookmarksdb");
@@ -43,7 +44,8 @@ public static class BookmarksServiceExtensions
             {
                 ctx.EnvironmentVariables["Bookmarks__SchemaRegistry__Url"] = schemaRegistry.GetEndpoint("http");
             })
-            .WithSwagger(swagger, "BookmarksApi");
+            .WithSwagger(swagger, "BookmarksApi")
+            .WithOtlpExporterViaCollector(otelCollector);
 
         return bookmarksApi;
     }
