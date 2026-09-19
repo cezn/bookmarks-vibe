@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using Confluent.Kafka;
+using KafkaConsumerApp.Dlq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,8 @@ public class KafkaBackgroundService(
     ILogger<KafkaBackgroundService> logger,
     IConsumer<string, byte[]> consumer,
     KafkaMessageWorkerLoop workerLoop,
+    KafkaDlqOptions dlqOptions,
+    BlockedUsersStateReady blockedUsersStateReady,
     [FromKeyedServices("KafkaConsumerAppHandlers")] Dictionary<string, Dictionary<string, object>> handlers
 ) : BackgroundService
 {
@@ -23,6 +26,36 @@ public class KafkaBackgroundService(
 
     public async Task Consume(CancellationToken ct)
     {
+        // Wait until the blocked-users store has been rebuilt from the compacted state topic so
+        // IsBlocked() is accurate before the first message is processed. Without this, the main
+        // consumer and the state-rebuild service start concurrently and the store is empty for a
+        // window, so blocked users would be wrongly treated as unblocked. The timeout guards
+        // against the rebuild never completing (e.g. broker unavailable at startup).
+        if (dlqOptions.Enabled)
+        {
+            logger.LogInformation(
+                "Waiting up to {Timeout} for blocked-users store to be rebuilt from {Topic}",
+                dlqOptions.RebuildTimeout,
+                dlqOptions.BlockedUsersTopic
+            );
+
+            using var rebuildCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            rebuildCts.CancelAfter(dlqOptions.RebuildTimeout);
+
+            try
+            {
+                await blockedUsersStateReady.WaitUntilReadyAsync(rebuildCts.Token);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                // TODO: fail process on timeout.
+                logger.LogWarning(
+                    "Timed out after {Timeout} waiting for blocked-users store rebuild; proceeding with a possibly-incomplete store",
+                    dlqOptions.RebuildTimeout
+                );
+            }
+        }
+
         consumer.Subscribe(handlers.Keys);
 
         var processedChannel = CreateProcessedItemChannel();

@@ -10,6 +10,7 @@ namespace KafkaConsumerApp.Dlq;
 public sealed class BlockedUsersStateBackgroundService(
     KafkaDlqOptions options,
     IBlockedUsersStore blockedUsersStore,
+    BlockedUsersStateReady ready,
     [FromKeyedServices("blocked-users-consumer")] IConsumer<string, byte[]> consumer,
     ILogger<BlockedUsersStateBackgroundService> logger
 ) : BackgroundService
@@ -17,7 +18,11 @@ public sealed class BlockedUsersStateBackgroundService(
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (!options.Enabled)
+        {
+            // Nothing to rebuild; let the main consumer start immediately.
+            ready.Signal();
             return Task.CompletedTask;
+        }
 
         return Task.Run(() => ConsumeState(stoppingToken), stoppingToken);
     }
@@ -26,13 +31,32 @@ public sealed class BlockedUsersStateBackgroundService(
     {
         consumer.Subscribe(options.BlockedUsersTopic);
 
+        var rebuildSignalled = false;
+
         while (!ct.IsCancellationRequested)
         {
             try
             {
                 var item = consumer.Consume(TimeSpan.FromMilliseconds(250));
-                if (item is null || item.IsPartitionEOF)
+                if (item is null)
                     continue;
+
+                // The state topic is compacted and single-partition, so reaching the partition
+                // end means we have replayed every live state record. Signal readiness once so
+                // the main consumer can start processing with an accurate IsBlocked() view.
+                if (item.IsPartitionEOF)
+                {
+                    if (!rebuildSignalled)
+                    {
+                        rebuildSignalled = true;
+                        ready.Signal();
+                        logger.LogInformation(
+                            "Blocked-users store rebuilt from topic {Topic}",
+                            options.BlockedUsersTopic
+                        );
+                    }
+                    continue;
+                }
 
                 if (string.IsNullOrWhiteSpace(item.Message.Key))
                     continue;
