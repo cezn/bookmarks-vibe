@@ -1,5 +1,6 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 import { execSync } from "node:child_process";
+import { uniqueId } from "./unique";
 
 export const APP_URL = "http://localhost:5005";
 
@@ -78,8 +79,7 @@ export async function registerAndLogin(
   page: Page,
   request: APIRequestContext,
 ): Promise<{ email: string; password: string }> {
-  const uniqueId = Date.now();
-  const email = `test-${uniqueId}@example.com`;
+  const email = `test-${uniqueId()}@example.com`;
   const password = "TestPass123!";
 
   // Register new user

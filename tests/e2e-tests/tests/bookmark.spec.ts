@@ -3,6 +3,7 @@ import { BookmarksPage } from "./BookmarksPage";
 import { BookmarkCreatePage } from "./BookmarkCreatePage";
 import { BookmarkEditPage } from "./BookmarkEditPage";
 import { registerAndLogin } from "./helpers/auth";
+import { uniqueId } from "./helpers/unique";
 
 type MyFixtures = {
   authenticatedPage: Page;
@@ -23,13 +24,13 @@ test.describe("Bookmarks CRUD", () => {
     authenticatedPage: page,
   }) => {
     // Generate a unique bookmark name and URLs
-    const uniqueId = Date.now();
-    const bookmarkTitle = `Test Bookmark ${uniqueId}`;
-    const updatedTitle = `Updated Bookmark ${uniqueId}`;
-    const bookmarkUrl = `https://example.com/${uniqueId}`;
-    const updatedUrl = `https://updated.com/${uniqueId}`;
-    const bookmarkTags = [`tag${uniqueId}`, `another${uniqueId}`];
-    const updatedTags = [`updated${uniqueId}`];
+    const uid = uniqueId();
+    const bookmarkTitle = `Test Bookmark ${uid}`;
+    const updatedTitle = `Updated Bookmark ${uid}`;
+    const bookmarkUrl = `https://example.com/${uid}`;
+    const updatedUrl = `https://updated.com/${uid}`;
+    const bookmarkTags = [`tag${uid}`, `another${uid}`];
+    const updatedTags = [`updated${uid}`];
 
     const listPage = new BookmarksPage(page);
     const createPage = new BookmarkCreatePage(page);
@@ -84,11 +85,11 @@ test.describe("Bookmarks CRUD", () => {
   test("should handle duplicate bookmark titles", async ({
     authenticatedPage: page,
   }) => {
-    const uniqueId = Date.now();
-    const bookmarkTitle = `Duplicate Test ${uniqueId}`;
-    const bookmarkUrl1 = `https://example1.com/${uniqueId}`;
-    const bookmarkUrl2 = `https://example2.com/${uniqueId}`;
-    const bookmarkTags = [`tag${uniqueId}`];
+    const uid = uniqueId();
+    const bookmarkTitle = `Duplicate Test ${uid}`;
+    const bookmarkUrl1 = `https://example1.com/${uid}`;
+    const bookmarkUrl2 = `https://example2.com/${uid}`;
+    const bookmarkTags = [`tag${uid}`];
 
     const listPage = new BookmarksPage(page);
     const createPage = new BookmarkCreatePage(page);
@@ -116,10 +117,10 @@ test.describe("Bookmarks CRUD", () => {
   test("should validate bookmark creation with invalid URL", async ({
     authenticatedPage: page,
   }) => {
-    const uniqueId = Date.now();
-    const bookmarkTitle = `Invalid URL Test ${uniqueId}`;
-    const invalidUrl = `invalid-url-${uniqueId}`;
-    const bookmarkTags = [`tag${uniqueId}`];
+    const uid = uniqueId();
+    const bookmarkTitle = `Invalid URL Test ${uid}`;
+    const invalidUrl = `invalid-url-${uid}`;
+    const bookmarkTags = [`tag${uid}`];
 
     const listPage = new BookmarksPage(page);
     const createPage = new BookmarkCreatePage(page);
@@ -140,13 +141,13 @@ test.describe("Bookmarks Search", () => {
   test("should filter bookmarks by title and url", async ({
     authenticatedPage: page,
   }) => {
-    const uniqueId = Date.now();
-    const title1 = `Alpha ${uniqueId}`;
-    const url1 = `https://alpha.com/${uniqueId}`;
-    const tags1 = [`alpha${uniqueId}`];
-    const title2 = `Beta ${uniqueId}`;
-    const url2 = `https://beta.com/${uniqueId}`;
-    const tags2 = [`beta${uniqueId}`];
+    const uid = uniqueId();
+    const title1 = `Alpha ${uid}`;
+    const url1 = `https://alpha.com/${uid}`;
+    const tags1 = [`alpha${uid}`];
+    const title2 = `Beta ${uid}`;
+    const url2 = `https://beta.com/${uid}`;
+    const tags2 = [`beta${uid}`];
 
     const listPage = new BookmarksPage(page);
     const createPage = new BookmarkCreatePage(page);
@@ -214,10 +215,10 @@ test.describe("Bookmarks Search", () => {
   test("should handle search with no results", async ({
     authenticatedPage: page,
   }) => {
-    const uniqueId = Date.now();
-    const title1 = `Search Test ${uniqueId}`;
-    const url1 = `https://search.com/${uniqueId}`;
-    const tags1 = [`search${uniqueId}`];
+    const uid = uniqueId();
+    const title1 = `Search Test ${uid}`;
+    const url1 = `https://search.com/${uid}`;
+    const tags1 = [`search${uid}`];
 
     const listPage = new BookmarksPage(page);
     const createPage = new BookmarkCreatePage(page);
@@ -228,7 +229,8 @@ test.describe("Bookmarks Search", () => {
     await createPage.submit();
 
     const searchBox = page.getByRole("textbox", { name: /search bookmarks/i });
-    await searchBox.fill("nonexistent");
+    // Use a unique gibberish term so existing bookmarks can never match
+    await searchBox.fill(`no-such-bookmark-${uniqueId()}`);
     await searchBox.press("Enter");
 
     // No bookmarks should be visible

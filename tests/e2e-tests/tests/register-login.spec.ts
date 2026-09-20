@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { execSync } from "node:child_process";
+import { uniqueId } from "./helpers/unique";
 
 const APP_URL = "http://localhost:5005";
 
@@ -67,8 +68,7 @@ async function getConfirmationLink(
 }
 
 test("register, confirm via MailHog, and log in", async ({ page, request }) => {
-  const uniqueId = Date.now();
-  const testEmail = `test-${uniqueId}@example.com`;
+  const testEmail = `test-${uniqueId()}@example.com`;
   const testPassword = "TestPass123!";
 
   // Register new user.
