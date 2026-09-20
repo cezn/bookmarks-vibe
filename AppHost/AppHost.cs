@@ -62,6 +62,13 @@ var redis = builder
 
 var swagger = builder.AddSwaggerUI().WithUrlForEndpoint("http", url => url.DisplayText = "Swagger UI");
 
+// Elasticsearch + Kibana are opt-in: pass --elastic (or set elastic=true) to start them.
+if (builder.Configuration["elastic"] == "true")
+{
+    var elasticsearch = builder.AddElasticsearch("elasticsearch");
+    var kibana = builder.AddKibana("kibana", elasticsearch);
+}
+
 // services
 var auth = builder.AddAuth("auth", pg, redis, mailhog, swagger, otelCollector);
 var bookmarksApi = builder.AddBookmarks(

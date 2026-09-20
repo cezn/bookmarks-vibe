@@ -2,16 +2,6 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Docker Compose Up",
-      "type": "shell",
-      "command": "docker-compose -f ./compose.yml --profile infra up ",
-      "problemMatcher": [],
-      "isBackground": true,
-      "presentation": {
-        "panel": "dedicated"
-      }
-    },
-    {
       "label": "BookmarksApi: Migrate DB",
       "type": "shell",
       "command": "./scripts/migrate-db.sh",

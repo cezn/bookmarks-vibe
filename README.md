@@ -8,7 +8,7 @@
    dotnet tool install -g Aspire.Cli
    ```
    (or `curl -sSL https://aspire.dev/install.sh | bash`)
-3. **Docker** — required, the AppHost starts the Kafka/Postgres/Redis/etc. containers from `compose.yml` via `AddDockerComposeEnvironment`.
+3. **Docker** — required, the AppHost starts the Kafka/Postgres/Redis/etc. containers.
 4. **Node.js / npm** — required for the React UI (`src/services/bookmarks-react-ui`), which the AppHost runs as a Vite app.
 5. **Ollama** — `SummarizeApi` talks to Ollama; make sure it's running (or run `ollama_port_forward` on the host).
 
@@ -49,9 +49,9 @@ If you use remote ssh host/WSL or any kind of remote development tool with VS Co
 
 ## Run tests
 
-Initially, I was running everything with docker-compose. I've migrated services to Aspire, but tests are still relying on ports from compose files. But if needed, there are bunch of [VS Code tasks](.vscode/tasks.json) to start everything. For example, to run BookmarksApi.Tests, run these tasks (`ctrl+shift+t` in VS Code):
+Everything runs through Aspire. For example, to run BookmarksApi.Tests, start the app and run these [VS Code tasks](.vscode/tasks.json) (`ctrl+shift+t` in VS Code):
 
-1. Docker Compose Up
+1. `aspire start`
 2. BookmarksApi: Migrate DB
 3. `dotnet run --project  tests/services/BookmarksApi.Tests/`
 

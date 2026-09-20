@@ -14,10 +14,10 @@ dotnet run --project ./tests/services/BookmarksApi.Tests/
 
 ### Prerequisites
 
-Before running tests, ensure that PostgreSQL is running via Docker Compose:
+Before running tests, ensure the infrastructure is running via Aspire:
 
 ```bash
-docker-compose -f ./compose.yml --profile infra up
+aspire start
 ```
 
 This will start all required infrastructure services including PostgreSQL, Kafka, Redis, Schema Registry, and Ollama.
