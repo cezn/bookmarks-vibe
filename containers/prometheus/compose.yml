@@ -1,0 +1,21 @@
+services:
+  prometheus:
+    profiles:
+      - infra
+    image: prom/prometheus:v3.13.1
+    container_name: prometheus
+    mem_limit: 1g
+    ports:
+      - "0.0.0.0:9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    depends_on:
+      - kafka-metrics
+
+volumes:
+  prometheus_data:

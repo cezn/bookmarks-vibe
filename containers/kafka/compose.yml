@@ -19,6 +19,7 @@ services:
       KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 2 # 50 by default, produces tons of logs on broker
       KAFKA_REPLICA_FETCH_WAIT_MAX_MS: 5000 # replica waits 5s before making another fetch to primary
       KAFKA_LOG_MESSAGE_TIMESTAMP_TYPE: LogAppendTime # use broker time when messages are produced (ignores timestamp from producers)
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=5555 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
     healthcheck:
       test:
         [
@@ -28,3 +29,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  kafka-metrics:
+    profiles:
+      - infra
+    image: bitnami/jmx-exporter
+    container_name: kafka-metrics
+    # Explicit small heap: the image's default JVM has no -Xmx (defaults to 25% of host RAM)
+    entrypoint: ["java", "-Xms64m", "-Xmx256m", "-XX:MaxMetaspaceSize=128m", "-jar", "jmx_prometheus_standalone.jar"]
+    command: ["8080", "kafka.yml"]
+    mem_limit: 512m
+    ports:
+      - "16012:8080"
+    volumes:
+      - ./jmx-exporter/kafka.yml:/opt/bitnami/jmx-exporter/kafka.yml:ro
+    depends_on:
+      - broker1

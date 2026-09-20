@@ -8,6 +8,8 @@ include:
   - ./containers/kibana/compose.yml
   - ./containers/swagger-ui/compose.yml
   - ./containers/kafka/compose.yml
+  - ./containers/prometheus/compose.yml
+  - ./containers/grafana/compose.yml
   - ./containers/schema-registry/compose.yml
   - ./containers/kafka-connect/compose.yml
   - ./containers/console/compose.yml

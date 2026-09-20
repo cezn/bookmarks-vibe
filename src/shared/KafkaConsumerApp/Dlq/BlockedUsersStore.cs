@@ -9,7 +9,7 @@ public interface IBlockedUsersStore
     /// <summary>
     /// Marks the user as blocked, but only if <paramref name="version"/> is newer than the
     /// last applied version for that user. The version is the Kafka offset of the state message,
-    /// which is monotonic per key on the single-partition compacted state topic.
+    /// which is monotonic per key within its partition on the compacted state topic.
     /// </summary>
     void Block(string userId, long version);
 

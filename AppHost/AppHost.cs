@@ -26,7 +26,10 @@ var schemaRegistry = builder
     .WithKafka(kafka)
     .WithLifetime(ContainerLifetime.Persistent);
 
-var otelCollector = builder.AddOtelCollector("otel-collector");
+var prometheus = builder.AddPrometheus("prometheus");
+
+// The collector forwards metrics to both the Aspire dashboard (OTLP) and Prometheus (remote write).
+var otelCollector = builder.AddOtelCollector("otel-collector", prometheus);
 
 var kafkaConnect = builder
     .AddKafkaConnect("kafka-connect")
@@ -40,6 +43,12 @@ var kafkaConsole = builder
     .WithSchemaRegistry(schemaRegistry)
     .WithKafkaConnect(kafkaConnect)
     .WithUrlForEndpoint("http", url => url.DisplayText = "Kafka Console");
+
+// monitoring: kafka-metrics (JMX exporter) -> prometheus -> grafana
+var kafkaMetrics = builder.AddKafkaJmxExporter("kafka-metrics").WithKafka(kafka);
+prometheus.WithScrapeTarget(kafkaMetrics);
+var grafana = builder.AddGrafana("grafana").WithPrometheus(prometheus);
+grafana.WithUrlForEndpoint("http", url => url.DisplayText = "Grafana");
 
 var mailhog = builder
     .AddContainer("mailhog", "mailhog/mailhog", "v1.0.1")

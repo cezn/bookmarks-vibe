@@ -16,12 +16,34 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\aspire\src\Cezn.Aspire.Hosting.KafkaConnect\Cezn.Aspire.Hosting.KafkaConnect.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\aspire\src\Cezn.Aspire.Hosting.RedpandaConsole\Cezn.Aspire.Hosting.RedpandaConsole.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\aspire\src\Cezn.Aspire.Hosting.SchemaRegistry\Cezn.Aspire.Hosting.SchemaRegistry.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\aspire\src\Cezn.Aspire.Hosting.Grate\Cezn.Aspire.Hosting.Grate.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\aspire\src\Cezn.Aspire.Hosting.SwaggerUI\Cezn.Aspire.Hosting.SwaggerUI.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\aspire\src\Cezn.Aspire.Hosting.Utils\Cezn.Aspire.Hosting.Utils.csproj" IsAspireProjectResource="false" />
+    <ProjectReference
+      Include="..\aspire\src\Cezn.Aspire.Hosting.KafkaConnect\Cezn.Aspire.Hosting.KafkaConnect.csproj"
+      IsAspireProjectResource="false"
+    />
+    <ProjectReference
+      Include="..\aspire\src\Cezn.Aspire.Hosting.RedpandaConsole\Cezn.Aspire.Hosting.RedpandaConsole.csproj"
+      IsAspireProjectResource="false"
+    />
+    <ProjectReference
+      Include="..\aspire\src\Cezn.Aspire.Hosting.SchemaRegistry\Cezn.Aspire.Hosting.SchemaRegistry.csproj"
+      IsAspireProjectResource="false"
+    />
+    <ProjectReference
+      Include="..\aspire\src\Cezn.Aspire.Hosting.Grate\Cezn.Aspire.Hosting.Grate.csproj"
+      IsAspireProjectResource="false"
+    />
+    <ProjectReference
+      Include="..\aspire\src\Cezn.Aspire.Hosting.SwaggerUI\Cezn.Aspire.Hosting.SwaggerUI.csproj"
+      IsAspireProjectResource="false"
+    />
+    <ProjectReference
+      Include="..\aspire\src\Cezn.Aspire.Hosting.Utils\Cezn.Aspire.Hosting.Utils.csproj"
+      IsAspireProjectResource="false"
+    />
+    <ProjectReference
+      Include="..\aspire\src\Cezn.Aspire.Hosting.Monitoring\Cezn.Aspire.Hosting.Monitoring.csproj"
+      IsAspireProjectResource="false"
+    />
     <ProjectReference Include="..\src\services\Auth\Auth.csproj" />
     <ProjectReference Include="..\src\services\BookmarksApi\BookmarksApi.csproj" />
     <ProjectReference Include="..\src\services\TagsBookmarksSubscriber\TagsBookmarksSubscriber.csproj" />

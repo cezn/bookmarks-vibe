@@ -31,12 +31,8 @@ public sealed class BlockedUsersStateBackgroundService(
     {
         consumer.Subscribe(options.BlockedUsersTopic);
 
-        // Snapshot the high watermark (end offset) of the state topic before consuming.
-        // We don't have to worry about later messages, as our partitions are blocked until
-        // we reach the watermark of blocker users.
-        var watermark = SnapshotWatermark(ct);
-
-        var rebuildSignalled = false;
+        var rebuilder = new BlockedUsersStateRebuilder(consumer, options.BlockedUsersTopic, ready, logger);
+        rebuilder.SnapshotWatermarks(ct);
 
         while (!ct.IsCancellationRequested)
         {
@@ -52,28 +48,16 @@ public sealed class BlockedUsersStateBackgroundService(
                 var blocked =
                     item.Message.Value is not null && Encoding.UTF8.GetString(item.Message.Value).Trim() == "1";
 
-                // The message offset is the monotonic per-key version. Passing it lets the store
-                // ignore stale/duplicate updates, so this consumer and the direct mutation in
-                // KafkaDlqFacade can never leave the store in an inconsistent state.
+                // The message offset is the monotonic per-key version within its partition.
+                // Passing it lets the store ignore stale/duplicate updates, so this consumer
+                // and the direct mutation in KafkaDlqFacade can never leave the store in an
+                // inconsistent state.
                 if (blocked)
                     blockedUsersStore.Block(item.Message.Key, item.Offset.Value);
                 else
                     blockedUsersStore.Unblock(item.Message.Key, item.Offset.Value);
 
-                // We have replayed every live state record that existed at startup. Signal
-                // readiness once so the main consumer can start processing with an accurate
-                // IsBlocked() view. Keep consuming afterwards so the store stays current with
-                // new block/unblock updates.
-                if (!rebuildSignalled && item.Offset.Value >= watermark)
-                {
-                    rebuildSignalled = true;
-                    ready.Signal();
-                    logger.LogInformation(
-                        "Blocked-users store rebuilt from topic {Topic} (watermark {Watermark})",
-                        options.BlockedUsersTopic,
-                        watermark
-                    );
-                }
+                rebuilder.TrySignalRebuild(item.TopicPartition, item.Offset.Value);
             }
             catch (OperationCanceledException)
             {
@@ -86,42 +70,5 @@ public sealed class BlockedUsersStateBackgroundService(
         }
 
         consumer.Close();
-    }
-
-    /// <summary>
-    /// Returns the high watermark (end offset) of the state topic's partition, i.e. the offset
-    /// of the next record to be appended. Records at offsets below this value are the live state
-    /// that must be replayed. The state topic is single-partition, so partition 0 is queried
-    /// directly. Retries until the topic/partition is known to the broker (it may not exist yet
-    /// at startup).
-    /// </summary>
-    private long SnapshotWatermark(CancellationToken ct)
-    {
-        var topicPartition = new TopicPartition(options.BlockedUsersTopic, 0);
-
-        while (!ct.IsCancellationRequested)
-        {
-            try
-            {
-                var watermarks = consumer.QueryWatermarkOffsets(topicPartition, TimeSpan.FromSeconds(5));
-                return watermarks.High.Value;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(
-                    ex,
-                    "Could not snapshot watermark for topic {Topic}; retrying",
-                    options.BlockedUsersTopic
-                );
-            }
-
-            Task.Delay(TimeSpan.FromMilliseconds(250), ct).Wait(ct);
-        }
-
-        throw new OperationCanceledException(ct);
     }
 }

@@ -258,6 +258,20 @@
       "dependsOrder": "parallel",
       "problemMatcher": []
     },
+    {
+      "label": "E2E Tests: Run",
+      "type": "shell",
+      "command": "npm",
+      "args": ["test"],
+      "options": {
+        "cwd": "${workspaceFolder}/tests/e2e-tests"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
     // aspire
     {
       "label": "Aspire Auth: Seed Admin",

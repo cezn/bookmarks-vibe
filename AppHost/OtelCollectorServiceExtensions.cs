@@ -7,7 +7,8 @@ public static class OtelCollectorServiceExtensions
 {
     public static IResourceBuilder<ContainerResource> AddOtelCollector(
         this IDistributedApplicationBuilder builder,
-        string name
+        string name,
+        IResourceBuilder<ContainerResource>? prometheus = null
     )
     {
         var otelCollector = builder
@@ -25,11 +26,23 @@ public static class OtelCollectorServiceExtensions
             .WithOtlpExporter()
             .WithContainerFiles(
                 "/etc/otelcol-contrib",
-                [
-                    new ContainerFile
-                    {
-                        Name = "config.yaml",
-                        Contents = """
+                async (ctx, ct) =>
+                {
+                    // When a Prometheus resource is provided, metrics are also pushed to it
+                    // via the prometheusremotewrite exporter (in addition to the dashboard).
+                    var (prometheusExporter, metricsExporters) = prometheus is null
+                        ? ("", "[otlp, debug]")
+                        : (
+                            $"""
+                              prometheusremotewrite:
+                                endpoint: http://{await prometheus.GetEndpoint("http", KnownNetworkIdentifiers.DefaultAspireContainerNetwork).Property(
+                                EndpointProperty.HostAndPort
+                            ).GetValueAsync(ct)}
+                            """,
+                            "[otlp, debug, prometheusremotewrite]"
+                        );
+
+                    var config = $$"""
                         receivers:
                           otlp:
                             protocols:
@@ -53,6 +66,7 @@ public static class OtelCollectorServiceExtensions
                               insecure: true
                           debug:
                             verbosity: detailed
+                        {{prometheusExporter}}
 
                         service:
                           pipelines:
@@ -61,16 +75,17 @@ public static class OtelCollectorServiceExtensions
                               exporters: [otlp, debug]
                             metrics:
                               receivers: [otlp]
-                              exporters: [otlp, debug]
+                              exporters: {{metricsExporters}}
                             logs:
                               receivers: [otlp]
                               exporters: [otlp, debug]
                             logs/fluentd:
                               receivers: [fluentforward]
                               exporters: [otlp, debug]
-                        """,
-                    },
-                ]
+                        """;
+
+                    return [new ContainerFile { Name = "config.yaml", Contents = config }];
+                }
             )
             .WithArgs("--config", "/etc/otelcol-contrib/config.yaml");
 
