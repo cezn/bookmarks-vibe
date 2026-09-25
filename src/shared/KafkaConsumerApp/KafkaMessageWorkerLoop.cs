@@ -42,6 +42,7 @@ public class KafkaMessageWorkerLoop(
 
                 if (dlqFacade.IsBlocked(userId) && !isReplay)
                 {
+                    logger.LogUserIsBlocked(userId, type);
                     await processed.WriteAsync(await dlqFacade.HandleUserIsBlocked(item, type, ct), ct);
                     continue;
                 }

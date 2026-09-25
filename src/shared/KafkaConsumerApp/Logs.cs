@@ -57,4 +57,11 @@ public static partial class TagsMessageProcessorLogs
         string? topic,
         string? type
     );
+
+    [LoggerMessage(
+        EventId = 14,
+        Level = LogLevel.Warning,
+        Message = "User {UserId} is blocked, skipping message of type {Type}"
+    )]
+    public static partial void LogUserIsBlocked(this ILogger logger, string? userId, string type);
 }
