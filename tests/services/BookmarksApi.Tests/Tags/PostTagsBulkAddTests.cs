@@ -177,12 +177,9 @@ public sealed class PostTagsBulkAddTests
         // TODO: find out how to return 400 when userId is not found
         Assert.AreEqual(HttpStatusCode.InternalServerError, response1.StatusCode);
         // Assert.AreEqual(HttpStatusCode.BadRequest, response1.StatusCode);
-        Assert.AreEqual(
-            0,
-            (await fixture.Connection.GetAllTagsAsync(userId: fixture.UserId.ToString(), Token)).Count()
-        );
-        Assert.AreEqual(0, (await fixture.Connection.GetAllTagsAsync(userId: "", Token)).Count());
-        Assert.AreEqual(0, (await fixture.Connection.GetAllTagsAsync(userId: null!, Token)).Count());
+        Assert.IsEmpty(await fixture.Connection.GetAllTagsAsync(userId: fixture.UserId.ToString(), Token));
+        Assert.IsEmpty(await fixture.Connection.GetAllTagsAsync(userId: "", Token));
+        Assert.IsEmpty(await fixture.Connection.GetAllTagsAsync(userId: null!, Token));
         // var errors = await response1.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         // Assert.AreEqual("The UserId field is required.", errors!.Errors["userId"].Single());
     }

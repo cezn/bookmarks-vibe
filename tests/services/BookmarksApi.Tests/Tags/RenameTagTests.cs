@@ -42,9 +42,9 @@ public sealed class RenameTagTests
         var updated2 = await fixture.Connection.GetBookmarkByIdAsync(id2, bm2.UserId, Token);
         var updated3 = await fixture.Connection.GetBookmarkByIdAsync(id3, bm3.UserId, Token);
 
-        CollectionAssert.AreEquivalent(new[] { "newtag", "keep" }, updated1!.Tags);
-        CollectionAssert.AreEquivalent(new[] { "newtag" }, updated2!.Tags);
-        CollectionAssert.AreEquivalent(new[] { "othertag" }, updated3!.Tags);
+        Assert.AreSequenceEqual(new[] { "newtag", "keep" }, updated1!.Tags, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual(new[] { "newtag" }, updated2!.Tags, SequenceOrder.InAnyOrder);
+        Assert.AreSequenceEqual(new[] { "othertag" }, updated3!.Tags, SequenceOrder.InAnyOrder);
 
         // Assert: Outbox messages for updated bookmarks
         var outbox1 = await fixture.Connection.GetOutboxMessagesByAggregateIdAsync(id1.ToString(), Token);
@@ -62,8 +62,8 @@ public sealed class RenameTagTests
         );
         Assert.IsNotNull(bookmarkUpdated);
         Assert.AreEqual(id1, bookmarkUpdated.OldBookmark.Id);
-        CollectionAssert.Contains(bookmarkUpdated.OldBookmark.Tags.ToList(), "oldtag");
+        Assert.Contains("oldtag", bookmarkUpdated.OldBookmark.Tags.ToList());
         CollectionAssert.DoesNotContain(bookmarkUpdated.NewBookmark.Tags.ToList(), "oldtag");
-        CollectionAssert.Contains(bookmarkUpdated.NewBookmark.Tags.ToList(), "newtag");
+        Assert.Contains("newtag", bookmarkUpdated.NewBookmark.Tags.ToList());
     }
 }

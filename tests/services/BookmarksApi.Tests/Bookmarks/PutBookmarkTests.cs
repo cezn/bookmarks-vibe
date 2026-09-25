@@ -139,7 +139,7 @@ public sealed class PutBookmarkTests
         Assert.AreEqual(updatedBookmark.Title, updated.Title);
         Assert.AreEqual(updatedBookmark.Url, updated.Url);
         Assert.AreEqual(updatedBookmark.Summary, updated.Summary);
-        CollectionAssert.AreEquivalent(updatedBookmark.Tags.ToList(), updated.Tags.ToList());
+        Assert.AreSequenceEqual(updatedBookmark.Tags.ToList(), updated.Tags.ToList(), SequenceOrder.InAnyOrder);
         Assert.IsLessThan(1000, Math.Abs((created.CreatedAt - updated.CreatedAt).TotalMilliseconds)); // CreatedAt should not change
         Assert.IsGreaterThan(created.UpdatedAt, updated.UpdatedAt); // UpdatedAt should be newer
 
@@ -149,7 +149,7 @@ public sealed class PutBookmarkTests
         Assert.AreEqual(updated.Title, dbBookmark.Title);
         Assert.AreEqual(updated.Url, dbBookmark.Url);
         Assert.AreEqual(updated.Summary, dbBookmark.Summary);
-        CollectionAssert.AreEquivalent(updated.Tags.ToList(), dbBookmark.Tags.ToList());
+        Assert.AreSequenceEqual(updated.Tags.ToList(), dbBookmark.Tags.ToList(), SequenceOrder.InAnyOrder);
 
         // Assert outbox
         var outboxMessages = await fixture.Connection.GetOutboxMessagesByAggregateIdAsync(
@@ -157,7 +157,7 @@ public sealed class PutBookmarkTests
             Token
         );
         Assert.IsNotNull(outboxMessages);
-        Assert.AreEqual(2, outboxMessages.Count()); // One for create, one for update
+        Assert.HasCount(2, outboxMessages); // One for create, one for update
         var updateMessage = outboxMessages.First(m => m.Type == "bookmark_updated");
         Assert.AreEqual("bookmark_updated", updateMessage.Type);
         Assert.AreEqual(dbBookmark.Id.ToString(), updateMessage.AggregateId);
@@ -177,7 +177,7 @@ public sealed class PutBookmarkTests
         Assert.AreEqual(updated.Title, payload.Title);
         Assert.AreEqual(updated.Url, payload.Url);
         Assert.AreEqual(updated.Summary, payload.Summary);
-        CollectionAssert.AreEquivalent(updated.Tags.ToList(), payload.Tags.ToList());
+        Assert.AreSequenceEqual(updated.Tags.ToList(), payload.Tags.ToList(), SequenceOrder.InAnyOrder);
     }
 
     [TestMethod]
@@ -215,7 +215,7 @@ public sealed class PutBookmarkTests
         Assert.IsNotNull(responseBody);
         Assert.AreEqual(400, responseBody.Status);
         Assert.IsTrue(responseBody.Errors.ContainsKey("title"));
-        CollectionAssert.Contains(responseBody.Errors["title"], "The Title field is required.");
+        Assert.Contains("The Title field is required.", responseBody.Errors["title"]);
     }
 
     [TestMethod]
@@ -255,7 +255,7 @@ public sealed class PutBookmarkTests
         Assert.IsNotNull(responseBody);
         Assert.AreEqual(400, responseBody.Status);
         Assert.IsTrue(responseBody.Errors.ContainsKey("url"));
-        CollectionAssert.Contains(responseBody.Errors["url"], "The Url field is required.");
+        Assert.Contains("The Url field is required.", responseBody.Errors["url"]);
     }
 
     [TestMethod]

@@ -84,7 +84,7 @@ public sealed class GetTagsTests
 
         // Assert: All tags are returned in order, no duplicates
         var allNames = response1.Tags.Concat(response2.Tags).Select(t => t.Name).ToList();
-        CollectionAssert.AreEquivalent(names, allNames);
+        Assert.AreSequenceEqual(names, allNames, SequenceOrder.InAnyOrder);
 
         // Assert: CreatedAt is returned and matches for all tags
         var allTags = response1.Tags.Concat(response2.Tags).ToList();

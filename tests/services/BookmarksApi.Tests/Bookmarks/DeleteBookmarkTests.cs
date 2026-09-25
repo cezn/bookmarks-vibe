@@ -31,7 +31,7 @@ public sealed class DeleteBookmarkTests
         // Assert: Outbox message
         var outboxMessages = await fixture.Connection.GetOutboxMessagesByAggregateIdAsync(id.ToString(), Token);
         Assert.IsNotNull(outboxMessages);
-        Assert.AreEqual(1, outboxMessages.Count());
+        Assert.HasCount(1, outboxMessages);
         var outboxMessage = outboxMessages.First();
         Assert.AreEqual("bookmark_deleted", outboxMessage.Type);
         Assert.AreEqual(id.ToString(), outboxMessage.AggregateId);
@@ -51,6 +51,6 @@ public sealed class DeleteBookmarkTests
         Assert.AreEqual(dbBookmark.Title, payload.Title);
         Assert.AreEqual(dbBookmark.Url, payload.Url);
         Assert.AreEqual(dbBookmark.Summary, payload.Summary);
-        CollectionAssert.AreEquivalent(dbBookmark.Tags.ToList(), payload.Tags.ToList());
+        Assert.AreSequenceEqual(dbBookmark.Tags.ToList(), payload.Tags.ToList(), SequenceOrder.InAnyOrder);
     }
 }

@@ -108,7 +108,7 @@ public sealed class PostBookmarkTests
         Assert.AreEqual(newBookmark.Title, created.Title);
         Assert.AreEqual(newBookmark.Url, created.Url);
         Assert.AreEqual(newBookmark.Summary, created.Summary);
-        CollectionAssert.AreEquivalent(newBookmark.Tags.ToList(), created.Tags.ToList());
+        Assert.AreSequenceEqual(newBookmark.Tags.ToList(), created.Tags.ToList(), SequenceOrder.InAnyOrder);
         Assert.IsGreaterThan(DateTimeOffset.MinValue, created.CreatedAt);
         Assert.IsGreaterThan(DateTimeOffset.MinValue, created.UpdatedAt);
         Assert.AreEqual(fixture.UserId.ToString(), created.UserId);
@@ -119,7 +119,7 @@ public sealed class PostBookmarkTests
         Assert.AreEqual(created.Title, dbBookmark.Title);
         Assert.AreEqual(created.Url, dbBookmark.Url);
         Assert.AreEqual(created.Summary, dbBookmark.Summary);
-        CollectionAssert.AreEquivalent(created.Tags.ToList(), dbBookmark.Tags.ToList());
+        Assert.AreSequenceEqual(created.Tags.ToList(), dbBookmark.Tags.ToList(), SequenceOrder.InAnyOrder);
 
         // Assert outbox
         var outboxMessages = await fixture.Connection.GetOutboxMessagesByAggregateIdAsync(
@@ -127,7 +127,7 @@ public sealed class PostBookmarkTests
             Token
         );
         Assert.IsNotNull(outboxMessages);
-        Assert.AreEqual(1, outboxMessages.Count());
+        Assert.HasCount(1, outboxMessages);
         var outboxMessage = outboxMessages.First();
         Assert.AreEqual("bookmark_created", outboxMessage.Type);
         Assert.AreEqual(dbBookmark.Id.ToString(), outboxMessage.AggregateId);
@@ -148,7 +148,7 @@ public sealed class PostBookmarkTests
         Assert.AreEqual(created.Title, payload.Title);
         Assert.AreEqual(created.Url, payload.Url);
         Assert.AreEqual(created.Summary, payload.Summary);
-        CollectionAssert.AreEquivalent(created.Tags.ToList(), payload.Tags.ToList());
+        Assert.AreSequenceEqual(created.Tags.ToList(), payload.Tags.ToList(), SequenceOrder.InAnyOrder);
     }
 
     [TestMethod]
@@ -179,7 +179,7 @@ public sealed class PostBookmarkTests
         Assert.IsNotNull(responseBody);
         Assert.AreEqual(400, responseBody.Status);
         Assert.IsTrue(responseBody.Errors.ContainsKey("title"));
-        CollectionAssert.Contains(responseBody.Errors["title"], "The Title field is required.");
+        Assert.Contains("The Title field is required.", responseBody.Errors["title"]);
     }
 
     [TestMethod]
@@ -212,7 +212,7 @@ public sealed class PostBookmarkTests
         Assert.IsNotNull(responseBody);
         Assert.AreEqual(400, responseBody.Status);
         Assert.IsTrue(responseBody.Errors.ContainsKey("url"));
-        CollectionAssert.Contains(responseBody.Errors["url"], "The Url field is required.");
+        Assert.Contains("The Url field is required.", responseBody.Errors["url"]);
     }
 
     [TestMethod]

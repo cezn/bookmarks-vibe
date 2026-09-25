@@ -49,7 +49,7 @@ public sealed class GetBookmarksTests
         Assert.AreEqual(dbBookmark.Title, bookmark.Title);
         Assert.AreEqual(dbBookmark.Url, bookmark.Url);
         Assert.AreEqual(dbBookmark.Summary, bookmark.Summary);
-        CollectionAssert.AreEquivalent(dbBookmark.Tags.ToList(), bookmark.Tags.ToList());
+        Assert.AreSequenceEqual(dbBookmark.Tags.ToList(), bookmark.Tags.ToList(), SequenceOrder.InAnyOrder);
         Assert.AreEqual(dbBookmark.CreatedAt, bookmark.CreatedAt);
         Assert.AreEqual(dbBookmark.UpdatedAt, bookmark.UpdatedAt);
     }
@@ -105,7 +105,7 @@ public sealed class GetBookmarksTests
 
         // Assert: All bookmarks are returned in order, no duplicates
         var allTitles = response1.Bookmarks.Concat(response2.Bookmarks).Select(b => b.Title).ToList();
-        CollectionAssert.AreEquivalent(titles, allTitles);
+        Assert.AreSequenceEqual(titles, allTitles, SequenceOrder.InAnyOrder);
     }
 
     [TestMethod]

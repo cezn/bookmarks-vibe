@@ -202,7 +202,7 @@ public sealed class PostBookmarkImportMsedgeTests
         var bookmarkId = imported[0].Id;
         var outboxMessages = await fixture.Connection.GetOutboxMessagesByAggregateIdAsync(bookmarkId.ToString(), Token);
         Assert.IsNotNull(outboxMessages);
-        Assert.AreEqual(1, outboxMessages.Count());
+        Assert.HasCount(1, outboxMessages);
         Assert.AreEqual("bookmark_created", outboxMessages.First().Type);
     }
 
