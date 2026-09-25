@@ -7,9 +7,11 @@ builder.HideDefaultResourceUrls();
 
 var jwtKey = builder.AddParameter("jwt-key");
 var bookmarksApiKey = builder.AddParameter("bookmarks-api-key");
+var pgPassword = builder.AddParameter("pg-password", "secret");
 
 var pg = builder
     .AddPostgres("pg", port: 5432)
+    .WithPassword(pgPassword)
     .WithArgs("-c", "wal_level=logical", "-c", "max_wal_senders=10", "-c", "log_min_duration_statement=100")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithPgAdmin(pgAdminBuilder =>
@@ -58,10 +60,7 @@ var kafkaMetrics = builder
     .WithKafka(kafka)
     .WithEndpoint("metrics", e => e.Port = 5084);
 prometheus.WithScrapeTarget(kafkaMetrics);
-var grafana = builder
-    .AddGrafana("grafana")
-    .WithPrometheus(prometheus)
-    .WithEndpoint("http", e => e.Port = 3000);
+var grafana = builder.AddGrafana("grafana").WithPrometheus(prometheus).WithEndpoint("http", e => e.Port = 3000);
 grafana.WithUrlForEndpoint("http", url => url.DisplayText = "Grafana");
 
 var mailhog = builder
@@ -94,19 +93,9 @@ if (builder.Configuration["elastic"] == "true")
 }
 
 // services
-var auth = builder
-    .AddAuth("auth", pg, redis, mailhog, swagger, otelCollector)
-    .WithEndpoint("http", e => e.Port = 5006);
+var auth = builder.AddAuth("auth", pg, redis, mailhog, swagger, otelCollector).WithEndpoint("http", e => e.Port = 5006);
 var bookmarksApi = builder
-    .AddBookmarks(
-        "bookmarks-api",
-        pg,
-        kafkaConnect,
-        schemaRegistry,
-        jwtKey,
-        swagger,
-        otelCollector
-    )
+    .AddBookmarks("bookmarks-api", pg, kafkaConnect, schemaRegistry, jwtKey, swagger, otelCollector)
     .WithEndpoint("http", e => e.Port = 5002);
 var tagsBookmarksSubscriber = builder.AddTagsBookmarksSubscriber(
     "tags-bookmarks-subscriber",
@@ -116,10 +105,9 @@ var tagsBookmarksSubscriber = builder.AddTagsBookmarksSubscriber(
     bookmarksApiKey,
     otelCollector
 );
+
 // Port matches the dev server port in vite.config.ts so the host port is stable.
-var ui = builder
-    .AddViteApp("ui", "../src/services/bookmarks-react-ui")
-    .WithEndpoint("http", e => e.Port = 5004);
+var ui = builder.AddViteApp("ui", "../src/services/bookmarks-react-ui").WithEndpoint("http", e => e.Port = 5004);
 var staticAssets = builder.ExecutionContext.IsPublishMode
     ? builder.AddProject<StaticAssets>("static-assets").PublishWithContainerFiles(ui, "wwwroot")
     : null;

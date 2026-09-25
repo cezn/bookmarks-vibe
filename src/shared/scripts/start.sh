@@ -17,7 +17,7 @@ else
 fi
 
 # OTEL Exporter
-export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317" # 4317 grpc | 4318 http/protobuf
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:5088" # 5088 grpc | 5089 http/protobuf
 export OTEL_EXPORTER_OTLP_PROTOCOL="grpc" # http/protobuf | http/json | grpc`
 export OTEL_EXPORTER_OTLP_TIMEOUT="10000" # ms
 export OTEL_EXPORTER_OTLP_COMPRESSION="none" # gzip

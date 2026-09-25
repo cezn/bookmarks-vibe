@@ -146,7 +146,7 @@ public class TestFixture : IDisposable
 
         // OTEL Exporter
         if (Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") == null)
-            Environment.SetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317");
+            Environment.SetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:5088");
         if (Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_PROTOCOL") == null)
             Environment.SetEnvironmentVariable("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc");
         if (Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_TIMEOUT") == null)

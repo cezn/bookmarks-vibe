@@ -66,20 +66,24 @@ public sealed class Test1
     {
         var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(x =>
             x.ConfigureAppConfiguration(
-                (_, config) =>
-                    config.AddInMemoryCollection(
-                        new Dictionary<string, string?>
-                        {
-                            ["Logging:LogLevel:Default"] = "Trace",
-                            ["Logging:LogLevel:Microsoft.AspNetCore"] = "Trace",
+                    (_, config) =>
+                        config.AddInMemoryCollection(
+                            new Dictionary<string, string?>
+                            {
+                                ["Logging:LogLevel:Default"] = "Trace",
+                                ["Logging:LogLevel:Microsoft.AspNetCore"] = "Trace",
 
-                            ["ReverseProxy:Clusters:bookmarks:Destinations:destination1:Address"] =
-                                s_bookmarksFixture.Url,
-                            ["ReverseProxy:Clusters:static-assets:Destinations:destination1:Address"] =
-                                s_staticAssetsFixture.Url,
-                        }
-                    )
-            )
+                                ["ReverseProxy:Clusters:bookmarks:Destinations:destination1:Address"] =
+                                    s_bookmarksFixture.Url,
+                                ["ReverseProxy:Clusters:static-assets:Destinations:destination1:Address"] =
+                                    s_staticAssetsFixture.Url,
+                            }
+                        )
+                )
+                .ConfigureServices(services =>
+                {
+                    services.AddDataProtection().UseEphemeralDataProtectionProvider();
+                })
         );
 
         factory.ClientOptions.AllowAutoRedirect = false;

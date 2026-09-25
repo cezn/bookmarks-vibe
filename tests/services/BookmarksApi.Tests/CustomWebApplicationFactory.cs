@@ -20,7 +20,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                             "host=127.0.0.1;database=bookmarksdb;user id=postgres;password=secret;",
                         ["ConnectionStrings:BookmarksRo"] =
                             "host=127.0.0.1;database=bookmarksdb;user id=postgres;password=secret;",
-                        ["Bookmarks:SchemaRegistry:Url"] = "http://127.0.0.1:8081",
+                        ["Bookmarks:SchemaRegistry:Url"] = "http://127.0.0.1:5081",
                         ["Kafka:BootstrapServers"] = "127.0.0.1:9092",
                         ["Kafka:GroupId"] = "bookmark-tags-extractor",
                         ["Jwt:Key"] = "930591a8-2c0d-5b91-ba76-60087bd989c91c167c5c-9192-5b98-aaa2-f27d9cc473c7",
